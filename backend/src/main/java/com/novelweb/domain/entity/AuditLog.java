@@ -7,14 +7,13 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
-
-import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
 
 @Entity
 @Table(name = "audit_logs")
@@ -31,28 +30,34 @@ public class AuditLog {
     private UUID sessionId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "action", columnDefinition = "audit_action", nullable = false)
+    @Column(nullable = false)
     private AuditAction action;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "metadata", columnDefinition = "jsonb", nullable = false)
-    private Map<String, Object> metadata;
+    @Column(columnDefinition = "jsonb", nullable = false)
+    private String metadata = "{}";
 
-    @Column(name = "ip_address")
+    @JdbcTypeCode(SqlTypes.INET)
+    @Column(name = "ip_address", columnDefinition = "inet")
     private String ipAddress;
 
     @Column(name = "user_agent")
     private String userAgent;
 
     @Column(name = "created_at", nullable = false)
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = OffsetDateTime.now();
+        }
+        if (metadata == null || metadata.isBlank()) {
+            metadata = "{}";
+        }
+    }
 
     public UUID getId() {
         return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public UUID getUserId() {
@@ -79,11 +84,11 @@ public class AuditLog {
         this.action = action;
     }
 
-    public Map<String, Object> getMetadata() {
+    public String getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(Map<String, Object> metadata) {
+    public void setMetadata(String metadata) {
         this.metadata = metadata;
     }
 
@@ -103,11 +108,7 @@ public class AuditLog {
         this.userAgent = userAgent;
     }
 
-    public Instant getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
     }
 }

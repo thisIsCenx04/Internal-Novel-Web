@@ -1,8 +1,10 @@
 export function DashboardPage() {
   return (
-    <section className="card">
-      <h1>Admin dashboard</h1>
-      <p>Coming soon.</p>
+    <section className="stack">
+      <h2>Dashboard</h2>
+      <div className="card">
+        <p className="muted">Admin stats will appear here.</p>
+      </div>
     </section>
   )
 }

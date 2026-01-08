@@ -1,79 +1,61 @@
-import { type FormEvent, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-
-import { useAuth } from '../hooks/useAuth'
-import { login } from '../api/authApi'
+import type { FormEvent } from 'react'
+import { useState } from 'react'
+import api from '../../../shared/api/httpClient'
+import { Button } from '../../../shared/components/Button'
+import { useAuth } from '../../../app/providers/AuthProvider'
 
 export function LoginPage() {
-  const auth = useAuth()
-  const navigate = useNavigate()
+  const { setTokens } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [pingResult, setPingResult] = useState<string | null>(null)
 
-  const deviceId = useMemo(() => {
-    const existing = localStorage.getItem('device_id')
-    if (existing) return existing
-    const generated = crypto.randomUUID()
-    localStorage.setItem('device_id', generated)
-    return generated
-  }, [])
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError(null)
-    setLoading(true)
+  const handlePing = async () => {
+    setPingResult('...')
     try {
-      const response = await login({
-        username,
-        password,
-        deviceId,
-        userAgent: navigator.userAgent,
-      })
-      auth.setTokens({
-        accessToken: response.accessToken,
-        refreshToken: response.refreshToken,
-      })
-      localStorage.setItem('user_role', response.user.role)
-      navigate('/app')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed'
-      setError(message)
-    } finally {
-      setLoading(false)
+      const res = await api.get('/api/auth/ping')
+      setPingResult(res.data?.data ?? 'pong')
+    } catch {
+      setPingResult('failed')
+    }
+  }
+
+  const handleMockLogin = (event: FormEvent) => {
+    event.preventDefault()
+    if (username && password) {
+      setTokens(`dev-token-${username}`)
     }
   }
 
   return (
-    <section className="card card--tight">
-      <h1>Sign in</h1>
-      <p>Use your internal account to continue.</p>
-      <form onSubmit={handleSubmit} className="form">
-        <label>
+    <div className="card">
+      <h2>Login</h2>
+      <form onSubmit={handleMockLogin} className="form">
+        <label className="field">
           Username
           <input
             value={username}
             onChange={(event) => setUsername(event.target.value)}
-            autoComplete="username"
-            required
+            placeholder="admin"
           />
         </label>
-        <label>
+        <label className="field">
           Password
           <input
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
+            placeholder="password"
           />
         </label>
-        {error && <div className="alert">{error}</div>}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign in'}
-        </button>
+        <div className="actions">
+          <Button type="submit">Mock Login</Button>
+          <Button type="button" variant="secondary" onClick={handlePing}>
+            Ping Auth
+          </Button>
+        </div>
+        {pingResult ? <p className="muted">Ping: {pingResult}</p> : null}
       </form>
-    </section>
+    </div>
   )
 }

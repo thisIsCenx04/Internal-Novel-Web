@@ -1,8 +1,8 @@
-type Props = {
+type ToastProps = {
   message: string
-  tone?: 'info' | 'success' | 'error'
+  variant?: 'info' | 'error'
 }
 
-export function Toast({ message, tone = 'info' }: Props) {
-  return <div className={`toast toast--${tone}`}>{message}</div>
+export function Toast({ message, variant = 'info' }: ToastProps) {
+  return <div className={`toast toast--${variant}`}>{message}</div>
 }
