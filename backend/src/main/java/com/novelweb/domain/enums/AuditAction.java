@@ -1,0 +1,26 @@
+package com.novelweb.domain.enums;
+
+public enum AuditAction {
+    LOGIN_SUCCESS,
+    LOGIN_FAIL,
+    LOGOUT,
+    SESSION_REVOKED,
+    OPEN_STORY,
+    OPEN_CHAPTER,
+    NEXT_CHAPTER,
+    NEXT_TOO_FAST,
+    COPY_ATTEMPT,
+    BAN_USER,
+    UNBAN_USER,
+    CREATE_USER,
+    UPDATE_USER,
+    DELETE_USER,
+    UPDATE_VIP,
+    CREATE_STORY,
+    UPDATE_STORY,
+    DELETE_STORY,
+    CREATE_CHAPTER,
+    UPDATE_CHAPTER,
+    DELETE_CHAPTER,
+    UPDATE_SETTINGS
+}
