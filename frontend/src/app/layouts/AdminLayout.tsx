@@ -1,15 +1,12 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 
 export function AdminLayout() {
   return (
-    <div className="shell shell--admin">
-      <aside className="side">
-        <div className="brand">Admin</div>
-        <nav>
-          <NavLink to="/admin">Dashboard</NavLink>
-        </nav>
-      </aside>
-      <main className="shell__content">
+    <div className="layout layout-admin">
+      <header className="layout-header">
+        <h1>Admin Dashboard</h1>
+      </header>
+      <main className="layout-main">
         <Outlet />
       </main>
     </div>

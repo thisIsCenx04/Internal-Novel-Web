@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   -- store HASHED token (recommended), not raw token
   session_token_hash TEXT NOT NULL UNIQUE,
 
-  device_id          TEXT NOT NULL,          -- fingerprint/id from client
+  device_id          TEXT NOT NULL,
   user_agent         TEXT NULL,
   ip_address         INET NULL,
 
@@ -98,7 +98,6 @@ CREATE TABLE IF NOT EXISTS user_sessions (
   revoke_reason      TEXT NULL
 );
 
--- One ACTIVE session per user
 CREATE UNIQUE INDEX IF NOT EXISTS uq_user_sessions_one_active_per_user
 ON user_sessions(user_id)
 WHERE status = 'ACTIVE';
@@ -175,8 +174,6 @@ CREATE INDEX IF NOT EXISTS idx_chapters_published_at ON chapters(published_at DE
 -- =========================
 -- VIEWS / READING CONTROL (10s rule)
 -- =========================
-
--- Every time a user opens a chapter => create a view record (can aggregate later)
 CREATE TABLE IF NOT EXISTS chapter_views (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   chapter_id          UUID NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,
@@ -197,7 +194,6 @@ CREATE INDEX IF NOT EXISTS idx_chapter_views_chapter_opened ON chapter_views(cha
 CREATE INDEX IF NOT EXISTS idx_chapter_views_story_opened ON chapter_views(story_id, opened_at DESC);
 CREATE INDEX IF NOT EXISTS idx_chapter_views_user_opened ON chapter_views(user_id, opened_at DESC);
 
--- Reading session per chapter to enforce "must stay >= 10s before next"
 CREATE TABLE IF NOT EXISTS reading_chapter_sessions (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id            UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -207,7 +203,7 @@ CREATE TABLE IF NOT EXISTS reading_chapter_sessions (
   story_id           UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
 
   opened_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-  allow_next_at      TIMESTAMPTZ NOT NULL, -- opened_at + interval '10 seconds'
+  allow_next_at      TIMESTAMPTZ NOT NULL,
   next_attempts_before_allowed INTEGER NOT NULL DEFAULT 0,
 
   completed_at       TIMESTAMPTZ NULL
@@ -216,18 +212,12 @@ CREATE TABLE IF NOT EXISTS reading_chapter_sessions (
 CREATE INDEX IF NOT EXISTS idx_reading_sessions_user_opened ON reading_chapter_sessions(user_id, opened_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reading_sessions_chapter_opened ON reading_chapter_sessions(chapter_id, opened_at DESC);
 
--- Optional: prevent spam multiple reading sessions for same (user, chapter) within very short time
--- (comment out if you want allow multi-open)
--- CREATE UNIQUE INDEX uq_reading_one_open_per_chapter
--- ON reading_chapter_sessions(user_id, chapter_id)
--- WHERE completed_at IS NULL;
-
 -- =========================
 -- NOTIFICATIONS
 -- =========================
 CREATE TABLE IF NOT EXISTS notifications (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id            UUID NULL REFERENCES users(id) ON DELETE CASCADE, -- null => global
+  user_id            UUID NULL REFERENCES users(id) ON DELETE CASCADE,
   type               notification_type NOT NULL,
 
   title              TEXT NOT NULL,
@@ -241,7 +231,7 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_
 CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read);
 
 -- =========================
--- AUDIT LOGS (system behavior logging)
+-- AUDIT LOGS
 -- =========================
 CREATE TABLE IF NOT EXISTS audit_logs (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -262,7 +252,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_action_created ON audit_logs(action, c
 CREATE INDEX IF NOT EXISTS idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata);
 
 -- =========================
--- USER ACTIVITY HEARTBEATS (for continuous activity time)
+-- USER ACTIVITY HEARTBEATS
 -- =========================
 CREATE TABLE IF NOT EXISTS user_activity_heartbeats (
   id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -304,7 +294,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- =========================
--- OPTIONAL: auto update stories.latest_chapter_published_at on chapter insert/update
+-- OPTIONAL: auto update stories.latest_chapter_published_at
 -- =========================
 CREATE OR REPLACE FUNCTION refresh_story_latest_chapter()
 RETURNS trigger AS $$
@@ -329,7 +319,6 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- =========================
 -- OPTIONAL: compute duration_seconds when closing a chapter view
--- (You can do in application layer instead; this is just a helper example.)
 -- =========================
 CREATE OR REPLACE FUNCTION compute_chapter_view_duration()
 RETURNS trigger AS $$

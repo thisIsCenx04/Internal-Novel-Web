@@ -1,24 +1,21 @@
-export type TokenPair = {
-  accessToken: string
-  refreshToken: string
-}
-
-const ACCESS_KEY = 'access_token'
-const REFRESH_KEY = 'refresh_token'
+const ACCESS_TOKEN_KEY = 'accessToken'
+const REFRESH_TOKEN_KEY = 'refreshToken'
 
 export const tokenStore = {
-  get(): TokenPair | null {
-    const accessToken = localStorage.getItem(ACCESS_KEY)
-    const refreshToken = localStorage.getItem(REFRESH_KEY)
-    if (!accessToken || !refreshToken) return null
-    return { accessToken, refreshToken }
+  getAccessToken() {
+    return localStorage.getItem(ACCESS_TOKEN_KEY)
   },
-  set(tokens: TokenPair) {
-    localStorage.setItem(ACCESS_KEY, tokens.accessToken)
-    localStorage.setItem(REFRESH_KEY, tokens.refreshToken)
+  getRefreshToken() {
+    return localStorage.getItem(REFRESH_TOKEN_KEY)
+  },
+  setTokens(accessToken: string, refreshToken?: string | null) {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
+    if (refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+    }
   },
   clear() {
-    localStorage.removeItem(ACCESS_KEY)
-    localStorage.removeItem(REFRESH_KEY)
+    localStorage.removeItem(ACCESS_TOKEN_KEY)
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
   },
 }

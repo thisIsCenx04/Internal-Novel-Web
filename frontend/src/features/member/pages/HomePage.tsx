@@ -1,23 +1,32 @@
 import { useQuery } from '@tanstack/react-query'
+import api from '../../../shared/api/httpClient'
 
-import httpClient from '../../../shared/api/httpClient'
+type ApiResponse<T> = {
+  data: T
+  success: boolean
+  message?: string | null
+}
 
 export function HomePage() {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['ping'],
+    queryKey: ['health'],
     queryFn: async () => {
-      const response = await httpClient.get<{ data: { status: string } }>('/api/public/ping')
-      return response.data
+      const res = await api.get('/api/health')
+      return res.data as ApiResponse<string>
     },
   })
 
   return (
-    <section className="card">
-      <h1>Foundation ready</h1>
-      <p>Backend ping status:</p>
-      {isLoading && <div className="status">Loading...</div>}
-      {isError && <div className="alert">Ping failed</div>}
-      {data && <div className="status">{data.data.status}</div>}
+    <section className="stack">
+      <h2>Home</h2>
+      <p className="muted">
+        Backend health:{' '}
+        {isLoading ? '...' : isError ? 'failed' : data?.data ?? 'unknown'}
+      </p>
+      <div className="card">
+        <h3>Newest stories</h3>
+        <p className="muted">Module0 placeholder.</p>
+      </div>
     </section>
   )
 }

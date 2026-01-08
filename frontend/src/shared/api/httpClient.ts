@@ -1,65 +1,67 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-
+import axios, { AxiosError, type AxiosInstance } from 'axios'
 import { tokenStore } from './tokenStore'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
-let refreshPromise: Promise<string> | null = null
-
-const httpClient = axios.create({
-  baseURL: API_URL,
+const api: AxiosInstance = axios.create({
+  baseURL,
+  withCredentials: true,
 })
 
-httpClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const tokens = tokenStore.get()
-  if (tokens?.accessToken) {
-    config.headers.Authorization = `Bearer ${tokens.accessToken}`
+let refreshPromise: Promise<string | null> | null = null
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refreshToken = tokenStore.getRefreshToken()
+  if (!refreshToken) return null
+
+  if (!refreshPromise) {
+    refreshPromise = api
+      .post('/api/auth/refresh', { refreshToken })
+      .then((res) => {
+        const accessToken = res.data?.data?.accessToken as string | undefined
+        const newRefresh = res.data?.data?.refreshToken as string | undefined
+        if (accessToken) {
+          tokenStore.setTokens(accessToken, newRefresh)
+          return accessToken
+        }
+        return null
+      })
+      .catch(() => null)
+      .finally(() => {
+        refreshPromise = null
+      })
+  }
+
+  return refreshPromise
+}
+
+api.interceptors.request.use((config) => {
+  const token = tokenStore.getAccessToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
 
-httpClient.interceptors.response.use(
+api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const status = error.response?.status
     const original = error.config
-    if (!original || status !== 401) {
-      return Promise.reject(error)
-    }
-
-    if (!refreshPromise) {
-      const tokens = tokenStore.get()
-      if (!tokens?.refreshToken) {
-        tokenStore.clear()
-        return Promise.reject(error)
+    const status = error.response?.status
+    if (status === 401 && original && !original.headers?.['x-refresh-retry']) {
+      const newToken = await refreshAccessToken()
+      if (newToken) {
+        original.headers = {
+          ...original.headers,
+          Authorization: `Bearer ${newToken}`,
+          'x-refresh-retry': '1',
+        }
+        return api(original)
       }
-
-      refreshPromise = httpClient
-        .post<{ accessToken: string; refreshToken: string }>('/api/auth/refresh', {
-          refreshToken: tokens.refreshToken,
-        })
-        .then((res) => {
-          tokenStore.set({
-            accessToken: res.data.accessToken,
-            refreshToken: res.data.refreshToken,
-          })
-          return res.data.accessToken
-        })
-        .finally(() => {
-          refreshPromise = null
-        })
-    }
-
-    try {
-      const newAccessToken = await refreshPromise
-      original.headers = original.headers ?? {}
-      original.headers.Authorization = `Bearer ${newAccessToken}`
-      return httpClient(original)
-    } catch (refreshError) {
       tokenStore.clear()
-      return Promise.reject(refreshError)
     }
+    return Promise.reject(error)
   },
 )
 
-export default httpClient
+export default api

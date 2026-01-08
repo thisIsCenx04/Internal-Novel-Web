@@ -1,24 +1,15 @@
-import { NavLink, Outlet } from 'react-router-dom'
-
-import { useAuth } from '../../features/auth/hooks/useAuth'
+import { Outlet } from 'react-router-dom'
+import { Header } from '../../features/member/components/Header'
+import { Footer } from '../../features/member/components/Footer'
 
 export function MemberLayout() {
-  const auth = useAuth()
-
   return (
-    <div className="shell">
-      <header className="shell__header">
-        <div className="brand">NovelWeb</div>
-        <nav>
-          <NavLink to="/app">Home</NavLink>
-        </nav>
-        <button type="button" className="ghost" onClick={auth.logout}>
-          Logout
-        </button>
-      </header>
-      <main className="shell__content">
+    <div className="layout layout-member">
+      <Header />
+      <main className="layout-main">
         <Outlet />
       </main>
+      <Footer />
     </div>
   )
 }

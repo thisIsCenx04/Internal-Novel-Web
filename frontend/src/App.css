@@ -1,101 +1,42 @@
 #root {
-  max-width: 900px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem;
+  padding: 2rem;
+  text-align: center;
 }
 
-.app {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-header h1 {
-  margin: 0;
-  font-size: 2rem;
-}
-
-header p {
-  margin: 0.25rem 0 0;
-  color: #6b7280;
-}
-
-button {
-  border: none;
-  border-radius: 999px;
-  padding: 0.6rem 1.4rem;
-  background: #111827;
-  color: #f9fafb;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
 }
 
 .card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 1.75rem;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  padding: 2em;
 }
 
-form {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-label {
-  display: grid;
-  gap: 0.4rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-input {
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0.7rem 0.9rem;
-  font-size: 1rem;
-}
-
-.error {
-  color: #b91c1c;
-  font-weight: 600;
-}
-
-.info-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  margin-top: 1.25rem;
-}
-
-.info-grid span {
-  display: block;
-  color: #6b7280;
-  font-size: 0.85rem;
-  margin-bottom: 0.25rem;
-}
-
-.info-grid strong {
-  font-size: 1.1rem;
-}
-
-@media (max-width: 640px) {
-  header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.read-the-docs {
+  color: #888;
 }

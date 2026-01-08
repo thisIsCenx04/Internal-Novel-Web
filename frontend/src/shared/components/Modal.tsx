@@ -1,25 +1,24 @@
-import { type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-type Props = {
+type ModalProps = {
   open: boolean
   title?: string
-  onClose: () => void
   children: ReactNode
+  onClose: () => void
 }
 
-export function Modal({ open, title, onClose, children }: Props) {
+export function Modal({ open, title, children, onClose }: ModalProps) {
   if (!open) return null
 
   return (
-    <div className="modal" role="dialog" aria-modal="true">
-      <div className="modal__backdrop" onClick={onClose} />
-      <div className="modal__content">
-        <header>
-          <h2>{title}</h2>
-          <button type="button" className="ghost" onClick={onClose}>
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal">
+        <div className="modal__header">
+          {title ? <h3>{title}</h3> : null}
+          <button className="btn btn--secondary" onClick={onClose}>
             Close
           </button>
-        </header>
+        </div>
         <div className="modal__body">{children}</div>
       </div>
     </div>
