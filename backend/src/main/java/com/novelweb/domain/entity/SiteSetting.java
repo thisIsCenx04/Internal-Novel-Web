@@ -6,16 +6,19 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "site_settings")
 @Getter
+@Setter
 @NoArgsConstructor
 public class SiteSetting {
     @Id
@@ -32,6 +35,11 @@ public class SiteSetting {
     @Column(name = "single_session_policy", nullable = false, columnDefinition = "setting_single_session_policy")
     private SingleSessionPolicy singleSessionPolicy = SingleSessionPolicy.KICK_OLD;
 
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @PreUpdate
+    public void onUpdate() {
+        updatedAt = OffsetDateTime.now();
+    }
 }

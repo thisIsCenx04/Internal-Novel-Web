@@ -1,9 +1,10 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../app/providers/AuthProvider'
-import { Button } from '../../../shared/components/Button'
+import { AdminHeader } from './AdminHeader'
+import { MemberHeader } from './MemberHeader'
 
 export function Header() {
-  const { signOut } = useAuth()
+  const { signOut, role } = useAuth()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -11,19 +12,9 @@ export function Header() {
     navigate('/login', { replace: true })
   }
 
-  return (
-    <header className="site-header">
-      <div className="site-header__inner">
-        <Link to="/app" className="brand">
-          Novel Web
-        </Link>
-        <nav className="site-nav">
-          <Link to="/app">Home</Link>
-          <Button type="button" variant="secondary" onClick={handleLogout}>
-            Logout
-          </Button>
-        </nav>
-      </div>
-    </header>
+  return role === 'ADMIN' ? (
+    <AdminHeader onLogout={handleLogout} />
+  ) : (
+    <MemberHeader onLogout={handleLogout} />
   )
 }

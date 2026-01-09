@@ -7,6 +7,7 @@ import { RequireRole } from './guards/RequireRole'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { HomePage } from '../features/member/pages/HomePage'
 import { DashboardPage } from '../features/admin/pages/DashboardPage'
+import { SettingsPage } from '../features/admin/pages/SettingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -36,7 +37,10 @@ export const router = createBrowserRouter([
         </RequireRole>
       </RequireAuth>
     ),
-    children: [{ index: true, element: <DashboardPage /> }],
+    children: [
+      { index: true, element: <DashboardPage /> },
+      { path: 'settings', element: <SettingsPage /> },
+    ],
   },
   {
     path: '*',
