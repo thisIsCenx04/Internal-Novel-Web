@@ -1,11 +1,14 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../../../shared/api/httpClient'
 import { Button } from '../../../shared/components/Button'
 import { useAuth } from '../../../app/providers/AuthProvider'
+import { getDeviceId } from '../utils/deviceId'
 
 export function LoginPage() {
   const { setTokens } = useAuth()
+  const navigate = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [pingResult, setPingResult] = useState<string | null>(null)
@@ -20,17 +23,28 @@ export function LoginPage() {
     }
   }
 
-  const handleMockLogin = (event: FormEvent) => {
+  const handleLogin = async (event: FormEvent) => {
     event.preventDefault()
-    if (username && password) {
-      setTokens(`dev-token-${username}`)
+    if (!username || !password) return
+
+    const res = await api.post('/api/auth/login', {
+      username,
+      password,
+      deviceId: getDeviceId(),
+      userAgent: navigator.userAgent,
+    })
+    const accessToken = res.data?.data?.accessToken as string | undefined
+    const refreshToken = res.data?.data?.refreshToken as string | undefined
+    if (accessToken) {
+      setTokens(accessToken, refreshToken)
+      navigate('/app', { replace: true })
     }
   }
 
   return (
     <div className="card">
       <h2>Login</h2>
-      <form onSubmit={handleMockLogin} className="form">
+      <form onSubmit={handleLogin} className="form">
         <label className="field">
           Username
           <input
@@ -49,7 +63,7 @@ export function LoginPage() {
           />
         </label>
         <div className="actions">
-          <Button type="submit">Mock Login</Button>
+          <Button type="submit">Login</Button>
           <Button type="button" variant="secondary" onClick={handlePing}>
             Ping Auth
           </Button>
