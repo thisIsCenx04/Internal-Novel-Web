@@ -7,17 +7,16 @@ type HeaderProps = {
 
 export function MemberHeader({ onLogout }: HeaderProps) {
   return (
-    <header className="site-header">
-      <div className="site-header__inner">
-        <Link to="/app" className="brand">
+    <header className="member-header">
+      <div className="member-header__inner">
+        <Link to="/home" className="brand brand--member">
           Novel Web
         </Link>
-        <nav className="site-nav">
-          <Link to="/app">Home</Link>
+        <div className="member-actions">
           <Button type="button" variant="secondary" onClick={onLogout}>
             Logout
           </Button>
-        </nav>
+        </div>
       </div>
     </header>
   )

@@ -11,7 +11,7 @@ export function RequireRole({ role = 'ADMIN', children }: RequireRoleProps) {
   const { role: currentRole } = useAuth()
 
   if (!currentRole || currentRole !== role) {
-    return <Navigate to="/app" replace />
+    return <Navigate to="/home" replace />
   }
 
   return <>{children}</>

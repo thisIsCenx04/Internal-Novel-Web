@@ -3,16 +3,20 @@ import { AuthLayout } from './layouts/AuthLayout'
 import { MemberLayout } from './layouts/MemberLayout'
 import { AdminLayout } from './layouts/AdminLayout'
 import { RequireAuth } from './guards/RequireAuth'
+import { RequireMember } from './guards/RequireMember'
 import { RequireRole } from './guards/RequireRole'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { HomePage } from '../features/member/pages/HomePage'
+import { StoryDetailPage } from '../features/member/pages/StoryDetailPage'
 import { DashboardPage } from '../features/admin/pages/DashboardPage'
 import { SettingsPage } from '../features/admin/pages/SettingsPage'
+import { StoriesPage } from '../features/admin/pages/StoriesPage'
+import { StoryFormPage } from '../features/admin/pages/StoryFormPage'
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/app" replace />,
+    element: <Navigate to="/home" replace />,
   },
   {
     path: '/login',
@@ -20,13 +24,18 @@ export const router = createBrowserRouter([
     children: [{ index: true, element: <LoginPage /> }],
   },
   {
-    path: '/app',
+    path: '/home',
     element: (
       <RequireAuth>
-        <MemberLayout />
+        <RequireMember>
+          <MemberLayout />
+        </RequireMember>
       </RequireAuth>
     ),
-    children: [{ index: true, element: <HomePage /> }],
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'read/:slug', element: <StoryDetailPage /> },
+    ],
   },
   {
     path: '/admin',
@@ -39,11 +48,14 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: 'stories', element: <StoriesPage /> },
+      { path: 'stories/new', element: <StoryFormPage /> },
+      { path: 'stories/:id/edit', element: <StoryFormPage /> },
       { path: 'settings', element: <SettingsPage /> },
     ],
   },
   {
     path: '*',
-    element: <Navigate to="/app" replace />,
+    element: <Navigate to="/home" replace />,
   },
 ])

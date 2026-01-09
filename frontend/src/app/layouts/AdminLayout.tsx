@@ -1,18 +1,32 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useNavigate } from 'react-router-dom'
+import { Button } from '../../shared/components/Button'
+import { useAuth } from '../providers/AuthProvider'
 
 export function AdminLayout() {
+  const navigate = useNavigate()
+  const { signOut } = useAuth()
+
+  const handleLogout = () => {
+    signOut()
+    navigate('/login', { replace: true })
+  }
+
   return (
-    <div className="layout layout-admin">
-      <header className="layout-header">
-        <div className="site-header__inner">
-          <h1>Admin Dashboard</h1>
-          <nav className="site-nav">
-            <Link to="/admin">Overview</Link>
-            <Link to="/admin/settings">Settings</Link>
-          </nav>
+    <div className="layout layout-admin admin-shell">
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar__brand">Admin</div>
+        <nav className="admin-nav">
+          <Link to="/admin">Dashboard</Link>
+          <Link to="/admin/stories">Stories</Link>
+          <Link to="/admin/settings">Settings</Link>
+        </nav>
+        <div className="admin-sidebar__footer">
+          <Button type="button" variant="secondary" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
-      </header>
-      <main className="layout-main">
+      </aside>
+      <main className="admin-main">
         <Outlet />
       </main>
     </div>
