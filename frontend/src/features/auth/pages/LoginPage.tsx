@@ -1,17 +1,24 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import api from '../../../shared/api/httpClient'
 import { Button } from '../../../shared/components/Button'
 import { useAuth } from '../../../app/providers/AuthProvider'
 import { getDeviceId } from '../utils/deviceId'
+import { parseJwt } from '../../../shared/utils/jwt'
 
 export function LoginPage() {
   const { setTokens } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [pingResult, setPingResult] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const reason = new URLSearchParams(location.search).get('reason')
+  const expiredMessage =
+    reason === 'expired' ? 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.' : null
 
   const handlePing = async () => {
     setPingResult('...')
@@ -26,18 +33,27 @@ export function LoginPage() {
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault()
     if (!username || !password) return
+    setError(null)
 
-    const res = await api.post('/api/auth/login', {
-      username,
-      password,
-      deviceId: getDeviceId(),
-      userAgent: navigator.userAgent,
-    })
-    const accessToken = res.data?.data?.accessToken as string | undefined
-    const refreshToken = res.data?.data?.refreshToken as string | undefined
-    if (accessToken) {
-      setTokens(accessToken, refreshToken)
-      navigate('/app', { replace: true })
+    try {
+      const res = await api.post('/api/auth/login', {
+        username,
+        password,
+        deviceId: getDeviceId(),
+        userAgent: navigator.userAgent,
+      })
+      const accessToken = res.data?.data?.accessToken as string | undefined
+      const refreshToken = res.data?.data?.refreshToken as string | undefined
+      if (accessToken) {
+        setTokens(accessToken, refreshToken)
+        const role = parseJwt(accessToken)?.role
+        navigate(role === 'ADMIN' ? '/admin' : '/home', { replace: true })
+      }
+    } catch (err) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Sai tài khoản hoặc mật khẩu.'
+      setError(message)
     }
   }
 
@@ -45,6 +61,8 @@ export function LoginPage() {
     <div className="card">
       <h2>Login</h2>
       <form onSubmit={handleLogin} className="form">
+        {expiredMessage ? <p className="toast toast--error">{expiredMessage}</p> : null}
+        {error ? <p className="toast toast--error">{error}</p> : null}
         <label className="field">
           Username
           <input

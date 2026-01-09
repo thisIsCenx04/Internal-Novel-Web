@@ -14,6 +14,7 @@ export function AdminHeader({ onLogout }: HeaderProps) {
         </Link>
         <nav className="site-nav">
           <Link to="/admin">Dashboard</Link>
+          <Link to="/admin/stories">Stories</Link>
           <Link to="/admin/settings">Settings</Link>
           <Button type="button" variant="secondary" onClick={onLogout}>
             Logout

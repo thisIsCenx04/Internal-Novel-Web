@@ -1,32 +1,32 @@
 import { useQuery } from '@tanstack/react-query'
-import api from '../../../shared/api/httpClient'
-
-type ApiResponse<T> = {
-  data: T
-  success: boolean
-  message?: string | null
-}
+import { fetchNewestStories } from '../api/storyApi'
+import { StoryCard } from '../components/StoryCard'
 
 export function HomePage() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['health'],
-    queryFn: async () => {
-      const res = await api.get('/api/health')
-      return res.data as ApiResponse<string>
-    },
+  const storiesQuery = useQuery({
+    queryKey: ['newest-stories'],
+    queryFn: fetchNewestStories,
   })
 
   return (
-    <section className="stack">
-      <h2>Home</h2>
-      <p className="muted">
-        Backend health:{' '}
-        {isLoading ? '...' : isError ? 'failed' : data?.data ?? 'unknown'}
-      </p>
-      <div className="card">
-        <h3>Newest stories</h3>
-        <p className="muted">Module0 placeholder.</p>
+    <section className="member-home">
+      <div className="section-header">
+        <div>
+          <h2>Top 15 truyen moi nhat</h2>
+          <p className="muted">Cap nhat lien tuc tu he thong.</p>
+        </div>
       </div>
+      {storiesQuery.isLoading ? (
+        <p className="muted">Loading...</p>
+      ) : storiesQuery.data && storiesQuery.data.length ? (
+        <div className="story-grid story-grid--wide">
+          {storiesQuery.data.slice(0, 15).map((story) => (
+            <StoryCard key={story.id} story={story} />
+          ))}
+        </div>
+      ) : (
+        <p className="muted">No stories yet.</p>
+      )}
     </section>
   )
 }
