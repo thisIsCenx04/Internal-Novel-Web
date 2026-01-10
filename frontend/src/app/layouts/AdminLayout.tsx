@@ -17,6 +17,7 @@ export function AdminLayout() {
         <div className="admin-sidebar__brand">Admin</div>
         <nav className="admin-nav">
           <Link to="/admin">Dashboard</Link>
+          <Link to="/admin/users">Users</Link>
           <Link to="/admin/stories">Stories</Link>
           <Link to="/admin/categories">Categories</Link>
           <Link to="/admin/settings">Settings</Link>

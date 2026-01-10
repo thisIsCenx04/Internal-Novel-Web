@@ -1,11 +1,21 @@
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '../../../shared/components/Button'
+import { fetchMemberProfile } from '../api/profileApi'
 
 type HeaderProps = {
   onLogout: () => void
 }
 
 export function MemberHeader({ onLogout }: HeaderProps) {
+  const profileQuery = useQuery({
+    queryKey: ['member-profile'],
+    queryFn: fetchMemberProfile,
+  })
+
+  const vipWarning = profileQuery.data?.vipWarningDays
+  const vipExpired = profileQuery.data?.vipExpired
+
   return (
     <header className="member-header">
       <div className="member-header__inner">
@@ -18,6 +28,15 @@ export function MemberHeader({ onLogout }: HeaderProps) {
           </Button>
         </div>
       </div>
+      {vipExpired ? (
+        <div className="vip-banner vip-banner--danger">
+          VIP expired. Please renew to continue reading.
+        </div>
+      ) : vipWarning != null ? (
+        <div className="vip-banner">
+          VIP expires in {vipWarning} day{vipWarning === 1 ? '' : 's'}.
+        </div>
+      ) : null}
     </header>
   )
 }

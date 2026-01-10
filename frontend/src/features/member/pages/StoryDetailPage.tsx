@@ -46,8 +46,14 @@ export function StoryDetailPage() {
       const session = await openReadingSession(chapter.id)
       setReadingSession(session)
       setNextCooldown(0)
-    } catch {
-      setNotice('Khong the mo chuong. Vui long thu lai.')
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>
+      const message = axiosError.response?.data?.message
+      if (message === 'VIP expired') {
+        setNotice('VIP het han. Vui long gia han de doc.')
+      } else {
+        setNotice('Khong the mo chuong. Vui long thu lai.')
+      }
     }
   }
 
@@ -143,10 +149,13 @@ export function StoryDetailPage() {
       await openChapter(nextChapter)
     } catch (error) {
       const axiosError = error as AxiosError<{ data?: { remainingSeconds?: number } }>
+      const message = (axiosError.response?.data as { message?: string } | undefined)?.message
       const remaining = axiosError.response?.data?.data?.remainingSeconds
       if (remaining) {
         setNextCooldown(remaining)
         setNotice(`Ban doc qua nhanh. Hay doi ${remaining}s.`)
+      } else if (message === 'VIP expired') {
+        setNotice('VIP het han. Vui long gia han de doc.')
       } else {
         setNotice('Khong the sang chuong. Vui long thu lai.')
       }

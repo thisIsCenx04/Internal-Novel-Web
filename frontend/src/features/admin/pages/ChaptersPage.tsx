@@ -28,6 +28,7 @@ export function ChaptersPage() {
   const [editing, setEditing] = useState<ChapterPayload | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
+  const [search, setSearch] = useState('')
 
   const chaptersQuery = useQuery({
     queryKey: ['admin-chapters', storyId],
@@ -35,10 +36,18 @@ export function ChaptersPage() {
     enabled: Boolean(storyId),
   })
 
-  const hasChapters = useMemo(
-    () => Boolean(chaptersQuery.data && chaptersQuery.data.length),
-    [chaptersQuery.data],
-  )
+  const filteredChapters = useMemo(() => {
+    const list = chaptersQuery.data ?? []
+    const query = search.trim().toLowerCase()
+    return list.filter((chapter) => {
+      if (!query) return true
+      const titleMatch = (chapter.title || '').toLowerCase().includes(query)
+      const noMatch = `#${chapter.chapterNo}`.includes(query)
+      return titleMatch || noMatch
+    })
+  }, [chaptersQuery.data, search])
+
+  const hasChapters = Boolean(filteredChapters.length)
 
   const createMutation = useMutation({
     mutationFn: (payload: ChapterUpsert) => createChapter(storyId || '', payload),
@@ -127,6 +136,13 @@ export function ChaptersPage() {
         <div className="story-list__header">
           <h3>All chapters</h3>
         </div>
+        <div className="filter-bar">
+          <input
+            placeholder="Search chapter"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
         {chaptersQuery.isLoading ? (
           <p className="muted">Loading...</p>
         ) : hasChapters ? (
@@ -140,7 +156,7 @@ export function ChaptersPage() {
                 <th>Actions</th>
               </tr>
             }
-            body={(chaptersQuery.data ?? []).map((chapter) => (
+            body={filteredChapters.map((chapter) => (
               <tr key={chapter.id}>
                 <td>
                   <strong>#{chapter.chapterNo}</strong>

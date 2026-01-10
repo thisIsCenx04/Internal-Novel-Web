@@ -5,6 +5,7 @@ import { Button } from '../../../shared/components/Button'
 import { Modal } from '../../../shared/components/Modal'
 import { Table } from '../../../shared/components/Table'
 import { deleteStory, fetchStories, type StoryPayload } from '../api/storyApi'
+import { fetchCategories } from '../api/categoryApi'
 
 export function StoriesPage() {
   const navigate = useNavigate()
@@ -12,12 +13,29 @@ export function StoriesPage() {
     queryKey: ['admin-stories'],
     queryFn: fetchStories,
   })
+  const categoriesQuery = useQuery({
+    queryKey: ['admin-categories'],
+    queryFn: fetchCategories,
+  })
   const [viewing, setViewing] = useState<StoryPayload | null>(null)
+  const [search, setSearch] = useState('')
+  const [categoryId, setCategoryId] = useState('all')
 
-  const hasStories = useMemo(
-    () => Boolean(storiesQuery.data && storiesQuery.data.length),
-    [storiesQuery.data],
-  )
+  const filteredStories = useMemo(() => {
+    const list = storiesQuery.data ?? []
+    const query = search.trim().toLowerCase()
+    return list.filter((story) => {
+      const matchesSearch =
+        !query ||
+        story.title.toLowerCase().includes(query) ||
+        story.slug.toLowerCase().includes(query)
+      const matchesCategory =
+        categoryId === 'all' || story.categories.some((category) => category.id === categoryId)
+      return matchesSearch && matchesCategory
+    })
+  }, [storiesQuery.data, search, categoryId])
+
+  const hasStories = Boolean(filteredStories.length)
 
   const deleteMutation = useMutation({ mutationFn: deleteStory })
 
@@ -38,6 +56,21 @@ export function StoriesPage() {
             Create story
           </Button>
         </div>
+        <div className="filter-bar">
+          <input
+            placeholder="Search title or slug"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+            <option value="all">All categories</option>
+            {(categoriesQuery.data ?? []).map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
         {storiesQuery.isLoading ? (
           <p className="muted">Loading...</p>
         ) : hasStories ? (
@@ -51,7 +84,7 @@ export function StoriesPage() {
                 <th>Actions</th>
               </tr>
             }
-            body={(storiesQuery.data ?? []).map((story) => (
+            body={filteredStories.map((story) => (
               <tr key={story.id}>
                 <td>
                   <strong>{story.title}</strong>

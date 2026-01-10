@@ -6,10 +6,12 @@ import com.novelweb.domain.entity.Chapter;
 import com.novelweb.domain.entity.ChapterView;
 import com.novelweb.domain.entity.ReadingChapterSession;
 import com.novelweb.domain.enums.AuditAction;
+import com.novelweb.domain.enums.UserRole;
 import com.novelweb.modules.audit.AuditService;
 import com.novelweb.modules.chapters.ChapterRepository;
 import com.novelweb.modules.reader.dto.NextChapterResponse;
 import com.novelweb.modules.reader.dto.OpenChapterResponse;
+import com.novelweb.modules.users.UserRepository;
 import com.novelweb.security.auth.SecurityUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
@@ -27,8 +29,10 @@ public class ReaderService {
     private final ReadingChapterSessionRepository readingSessionRepository;
     private final ChapterViewRepository chapterViewRepository;
     private final AuditService auditService;
+    private final UserRepository userRepository;
 
     public OpenChapterResponse openChapter(UUID chapterId, SecurityUserDetails principal, HttpServletRequest request) {
+        ensureVip(principal);
         Chapter chapter = chapterRepository.findById(chapterId)
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Chapter not found"));
 
@@ -70,6 +74,7 @@ public class ReaderService {
     }
 
     public NextChapterResponse requestNext(UUID sessionReadingId, SecurityUserDetails principal, HttpServletRequest request) {
+        ensureVip(principal);
         ReadingChapterSession session = readingSessionRepository.findById(sessionReadingId)
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Reading session not found"));
 
@@ -109,5 +114,18 @@ public class ReaderService {
             request.getHeader("User-Agent")
         );
         return new NextChapterResponse(true, 0, session.getAllowNextAt());
+    }
+
+    private void ensureVip(SecurityUserDetails principal) {
+        if (principal.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime vipExpiresAt = userRepository.findById(principal.getUserId())
+            .map(user -> user.getVipExpiresAt())
+            .orElse(null);
+        if (vipExpiresAt == null || vipExpiresAt.isBefore(now)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "VIP expired");
+        }
     }
 }

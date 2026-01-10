@@ -13,16 +13,20 @@ import { Modal } from '../../../shared/components/Modal'
 export function CategoriesPage() {
   const [name, setName] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [search, setSearch] = useState('')
 
   const categoriesQuery = useQuery({
     queryKey: ['admin-categories'],
     queryFn: fetchCategories,
   })
 
-  const hasCategories = useMemo(
-    () => Boolean(categoriesQuery.data && categoriesQuery.data.length),
-    [categoriesQuery.data],
-  )
+  const filteredCategories = useMemo(() => {
+    const list = categoriesQuery.data ?? []
+    const query = search.trim().toLowerCase()
+    return list.filter((category) => !query || category.name.toLowerCase().includes(query))
+  }, [categoriesQuery.data, search])
+
+  const hasCategories = Boolean(filteredCategories.length)
 
   const createMutation = useMutation({ mutationFn: (value: string) => createCategory(value) })
   const deleteMutation = useMutation({ mutationFn: deleteCategory })
@@ -58,6 +62,13 @@ export function CategoriesPage() {
 
       <div className="card">
         <h3>All categories</h3>
+        <div className="filter-bar">
+          <input
+            placeholder="Search category"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </div>
         {categoriesQuery.isLoading ? (
           <p className="muted">Loading...</p>
         ) : hasCategories ? (
@@ -69,7 +80,7 @@ export function CategoriesPage() {
                 <th>Actions</th>
               </tr>
             }
-            body={(categoriesQuery.data ?? []).map((category) => (
+            body={filteredCategories.map((category) => (
               <tr key={category.id}>
                 <td>
                   <strong>{category.name}</strong>
