@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Table } from '../../../shared/components/Table'
-import { fetchDashboardOverview, type DashboardTimeSeriesPoint } from '../api/dashboardApi'
+import {
+  fetchDashboardOverview,
+  type DashboardTimeSeriesPoint,
+  type DashboardTopStory,
+} from '../api/dashboardApi'
 
 const formatNumber = (value: number) => new Intl.NumberFormat().format(value)
 
@@ -54,6 +58,12 @@ function PieChart({ active, total }: { active: number; total: number }) {
   )
 }
 
+type ChartConfig =
+  | { title: string; type: 'bar'; data: DashboardTimeSeriesPoint[] }
+  | { title: string; type: 'top'; data: DashboardTopStory[] }
+  | { title: string; type: 'pie' }
+  | null
+
 export function DashboardPage() {
   const overviewQuery = useQuery({
     queryKey: ['admin-dashboard'],
@@ -63,7 +73,7 @@ export function DashboardPage() {
   const data = overviewQuery.data
   const [metric, setMetric] = useState('views-day')
 
-  const chartConfig = useMemo(() => {
+  const chartConfig = useMemo<ChartConfig>(() => {
     if (!data) return null
     switch (metric) {
       case 'views-week':
@@ -146,7 +156,7 @@ export function DashboardPage() {
                     <th>Số lượt xem</th>
                   </tr>
                 }
-                body={data.topStories.map((story) => (
+                body={chartConfig.data.map((story) => (
                   <tr key={story.storyId}>
                     <td>{story.title}</td>
                     <td className="muted">{story.slug}</td>

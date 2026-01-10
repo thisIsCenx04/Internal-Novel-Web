@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Table } from '../../../shared/components/Table'
-import { fetchAuditLogs, type AuditLogFilters } from '../api/auditApi'
+import { fetchAuditLogs, type AuditLogFilters, type AuditLogPage } from '../api/auditApi'
 
 const actions = [
   'LOGIN_SUCCESS',
@@ -55,10 +55,10 @@ export function AuditLogsPage() {
     }
   }, [userId, action, from, to, page])
 
-  const logsQuery = useQuery({
+  const logsQuery = useQuery<AuditLogPage>({
     queryKey: ['admin-audit-logs', filters],
     queryFn: () => fetchAuditLogs(filters),
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   })
 
   const pageData = logsQuery.data
