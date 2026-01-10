@@ -4,13 +4,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,45 +15,38 @@ import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 @Entity
-@Table(name = "stories")
+@Table(name = "chapters")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Story {
+public class Chapter {
     @Id
     @GeneratedValue
     @UuidGenerator
     private UUID id;
 
-    @Column(nullable = false)
-    private String title;
+    @ManyToOne
+    @JoinColumn(name = "story_id", nullable = false)
+    private Story story;
 
-    @Column(nullable = false, unique = true, length = 180)
-    private String slug;
+    @Column(name = "chapter_no", nullable = false)
+    private Integer chapterNo;
 
     @Column
-    private String description;
+    private String title;
 
-    @Column(name = "cover_url")
-    private String coverUrl;
+    @Column(nullable = false, columnDefinition = "text")
+    private String content;
 
     @Column(name = "is_visible", nullable = false)
     private Boolean isVisible = true;
+
+    @Column(name = "published_at")
+    private OffsetDateTime publishedAt;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @Column(name = "updated_at", insertable = false, updatable = false)
     private OffsetDateTime updatedAt;
-
-    @Column(name = "latest_chapter_published_at")
-    private OffsetDateTime latestChapterPublishedAt;
-
-    @ManyToMany
-    @JoinTable(
-        name = "story_categories",
-        joinColumns = @JoinColumn(name = "story_id"),
-        inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    private Set<Category> categories = new HashSet<>();
 }

@@ -12,6 +12,8 @@ import { DashboardPage } from '../features/admin/pages/DashboardPage'
 import { SettingsPage } from '../features/admin/pages/SettingsPage'
 import { StoriesPage } from '../features/admin/pages/StoriesPage'
 import { StoryFormPage } from '../features/admin/pages/StoryFormPage'
+import { ChaptersPage } from '../features/admin/pages/ChaptersPage'
+import { CategoriesPage } from '../features/admin/pages/CategoriesPage'
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +53,8 @@ export const router = createBrowserRouter([
       { path: 'stories', element: <StoriesPage /> },
       { path: 'stories/new', element: <StoryFormPage /> },
       { path: 'stories/:id/edit', element: <StoryFormPage /> },
+      { path: 'stories/:storyId/chapters', element: <ChaptersPage /> },
+      { path: 'categories', element: <CategoriesPage /> },
       { path: 'settings', element: <SettingsPage /> },
     ],
   },

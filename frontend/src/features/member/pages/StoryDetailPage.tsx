@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { fetchStoryDetail } from '../api/storyApi'
+import { useEffect, useState } from 'react'
+import { fetchChapterContent, fetchStoryDetail, type ChapterSummary } from '../api/storyApi'
 
 export function StoryDetailPage() {
   const { slug } = useParams()
@@ -8,6 +9,19 @@ export function StoryDetailPage() {
     queryKey: ['story-detail', slug],
     queryFn: () => fetchStoryDetail(slug || ''),
     enabled: Boolean(slug),
+  })
+  const [activeChapter, setActiveChapter] = useState<ChapterSummary | null>(null)
+
+  useEffect(() => {
+    if (storyQuery.data?.chapters?.length) {
+      setActiveChapter(storyQuery.data.chapters[0])
+    }
+  }, [storyQuery.data?.chapters])
+
+  const chapterQuery = useQuery({
+    queryKey: ['chapter-content', activeChapter?.id],
+    queryFn: () => fetchChapterContent(activeChapter?.id || ''),
+    enabled: Boolean(activeChapter?.id),
   })
 
   if (storyQuery.isLoading) {
@@ -29,6 +43,15 @@ export function StoryDetailPage() {
         <div>
           <h2>{story.title}</h2>
           <p className="muted">{story.description || 'Mo ta dang cap nhat.'}</p>
+          {story.categories.length ? (
+            <div className="reader-tags">
+              {story.categories.map((category) => (
+                <span key={category.id} className="story-tag">
+                  {category.name}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -39,22 +62,40 @@ export function StoryDetailPage() {
             <input type="search" placeholder="Ten chuong..." />
           </div>
           <div className="chapter-list">
-            {Array.from({ length: 12 }).map((_, index) => (
-              <div key={`chapter-${index}`} className="chapter-item">
-                <span>Chuong {index + 1}: Chuong mau</span>
-                <button type="button" className="ghost-button">
-                  Doc
-                </button>
-              </div>
-            ))}
+            {story.chapters.length ? (
+              story.chapters.map((chapter) => (
+                <div key={chapter.id} className="chapter-item">
+                  <span>
+                    Chuong {chapter.chapterNo}: {chapter.title || 'Chuong'}
+                  </span>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    onClick={() => setActiveChapter(chapter)}
+                  >
+                    Doc
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="muted">Chua co chuong.</p>
+            )}
           </div>
         </aside>
         <article className="reader-content">
-          <h3>Chuong 1: Chuong mau</h3>
-          <p>
-            Noi dung chuong se hien thi tai day. Day la phan doc truc tiep sau khi bam
-            vao truyen.
-          </p>
+          {chapterQuery.isLoading ? (
+            <p className="muted">Dang tai chuong...</p>
+          ) : chapterQuery.data ? (
+            <>
+              <h3>
+                Chuong {chapterQuery.data.chapterNo}:{' '}
+                {chapterQuery.data.title || 'Chuong'}
+              </h3>
+              <div className="reader-content__body">{chapterQuery.data.content}</div>
+            </>
+          ) : (
+            <p className="muted">Chon chuong de doc.</p>
+          )}
         </article>
       </div>
     </section>

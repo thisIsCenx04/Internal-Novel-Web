@@ -21,6 +21,15 @@ export function StoryCard({ story }: StoryCardProps) {
         <Link to={`/home/read/${story.slug}`} className="story-card__title">
           <h3>{story.title}</h3>
         </Link>
+        {story.categories.length ? (
+          <Link to={`/home/read/${story.slug}`} className="story-card__tags">
+            {story.categories.map((category) => (
+              <span key={category.id} className="story-tag">
+                {category.name}
+              </span>
+            ))}
+          </Link>
+        ) : null}
         <Link to={`/home/read/${story.slug}`} className="story-card__description">
           <p className="muted">{story.description || 'Mo ta dang cap nhat.'}</p>
         </Link>

@@ -2,18 +2,21 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../../../shared/components/Button'
+import { TagSelect } from '../../../shared/components/TagSelect'
 import {
   createStory,
   fetchStoryById,
   updateStory,
   type StoryUpsert,
 } from '../api/storyApi'
+import { fetchCategories } from '../api/categoryApi'
 
 const emptyForm: StoryUpsert = {
   title: '',
   description: '',
   coverUrl: '',
   isVisible: true,
+  categoryIds: [],
 }
 
 export function StoryFormPage() {
@@ -28,6 +31,11 @@ export function StoryFormPage() {
     enabled: isEdit,
   })
 
+  const categoriesQuery = useQuery({
+    queryKey: ['admin-categories'],
+    queryFn: fetchCategories,
+  })
+
   useEffect(() => {
     if (storyQuery.data) {
       setForm({
@@ -35,6 +43,7 @@ export function StoryFormPage() {
         description: storyQuery.data.description || '',
         coverUrl: storyQuery.data.coverUrl || '',
         isVisible: storyQuery.data.isVisible,
+        categoryIds: storyQuery.data.categories.map((category) => category.id),
       })
     }
   }, [storyQuery.data])
@@ -87,6 +96,14 @@ export function StoryFormPage() {
               <input
                 value={form.coverUrl}
                 onChange={(event) => setForm((prev) => ({ ...prev, coverUrl: event.target.value }))}
+              />
+            </label>
+            <label className="field">
+              Categories
+              <TagSelect
+                options={categoriesQuery.data ?? []}
+                value={form.categoryIds}
+                onChange={(categoryIds) => setForm((prev) => ({ ...prev, categoryIds }))}
               />
             </label>
             <label className="field">
