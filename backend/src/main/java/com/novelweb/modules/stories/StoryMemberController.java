@@ -1,7 +1,7 @@
 package com.novelweb.modules.stories;
 
 import com.novelweb.common.response.ApiResponse;
-import com.novelweb.modules.stories.dto.StoryDetailResponse;
+import com.novelweb.modules.stories.dto.StoryDetailWithChaptersResponse;
 import com.novelweb.modules.stories.dto.StorySummaryResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class StoryMemberController {
     }
 
     @GetMapping("/{slug}")
-    public ApiResponse<StoryDetailResponse> detail(@PathVariable String slug) {
-        return ApiResponse.ok(storyService.getVisibleBySlug(slug));
+    public ApiResponse<StoryDetailWithChaptersResponse> detail(@PathVariable String slug) {
+        return ApiResponse.ok(storyService.getVisibleWithChapters(slug));
     }
 }

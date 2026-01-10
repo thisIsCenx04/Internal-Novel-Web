@@ -7,6 +7,7 @@ export type StoryPayload = {
   description: string | null
   coverUrl: string | null
   isVisible: boolean
+  categories: CategorySummary[]
 }
 
 export type StoryUpsert = {
@@ -14,6 +15,13 @@ export type StoryUpsert = {
   description: string
   coverUrl: string
   isVisible: boolean
+  categoryIds: string[]
+}
+
+export type CategorySummary = {
+  id: string
+  name: string
+  slug: string
 }
 
 export async function fetchStories(): Promise<StoryPayload[]> {

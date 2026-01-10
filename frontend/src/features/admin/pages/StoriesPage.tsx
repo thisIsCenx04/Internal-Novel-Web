@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../../shared/components/Button'
 import { Modal } from '../../../shared/components/Modal'
+import { Table } from '../../../shared/components/Table'
 import { deleteStory, fetchStories, type StoryPayload } from '../api/storyApi'
 
 export function StoriesPage() {
@@ -40,31 +41,65 @@ export function StoriesPage() {
         {storiesQuery.isLoading ? (
           <p className="muted">Loading...</p>
         ) : hasStories ? (
-          <div className="story-list">
-            {(storiesQuery.data ?? []).map((story) => (
-              <div key={story.id} className="story-list__item">
-                <div>
+          <Table
+            header={
+              <tr>
+                <th>Title</th>
+                <th>Slug</th>
+                <th>Categories</th>
+                <th>Visible</th>
+                <th>Actions</th>
+              </tr>
+            }
+            body={(storiesQuery.data ?? []).map((story) => (
+              <tr key={story.id}>
+                <td>
                   <strong>{story.title}</strong>
-                  <span className="muted"> / {story.slug}</span>
-                </div>
-                <div className="actions">
-                  <Button type="button" variant="secondary" onClick={() => setViewing(story)}>
-                    View
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => navigate(`/admin/stories/${story.id}/edit`)}
-                  >
-                    Edit
-                  </Button>
-                  <Button type="button" variant="secondary" onClick={() => handleDelete(story)}>
-                    Delete
-                  </Button>
-                </div>
-              </div>
+                </td>
+                <td className="muted">{story.slug}</td>
+                <td>
+                  {story.categories.length ? (
+                    <div className="tag-select">
+                      {story.categories.map((category) => (
+                        <span key={category.id} className="tag-chip tag-chip--active">
+                          {category.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="muted">No categories</span>
+                  )}
+                </td>
+                <td>
+                  <span>{story.isVisible ? 'Yes' : 'No'}</span>
+                </td>
+                <td>
+                  <div className="actions">
+                    <Button type="button" variant="secondary" onClick={() => setViewing(story)}>
+                      View
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => navigate(`/admin/stories/${story.id}/chapters`)}
+                    >
+                      Chapters
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => navigate(`/admin/stories/${story.id}/edit`)}
+                    >
+                      Edit
+                    </Button>
+                    <Button type="button" variant="secondary" onClick={() => handleDelete(story)}>
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
             ))}
-          </div>
+          />
         ) : (
           <p className="muted">No stories yet.</p>
         )}
