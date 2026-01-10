@@ -4,6 +4,7 @@ export type SettingsPayload = {
   rulesBannerText: string
   footerContactText: string
   singleSessionPolicy: 'KICK_OLD' | 'DENY_NEW'
+  watermarkEnabled: boolean
 }
 
 export async function fetchSettings(): Promise<SettingsPayload> {

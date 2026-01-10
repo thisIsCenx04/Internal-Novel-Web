@@ -15,4 +15,6 @@ public class SettingsUpdateRequest {
 
     @NotNull(message = "singleSessionPolicy is required")
     private SingleSessionPolicy singleSessionPolicy;
+
+    private Boolean watermarkEnabled;
 }

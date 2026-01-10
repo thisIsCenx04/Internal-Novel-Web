@@ -1,5 +1,6 @@
 export type JwtPayload = {
   role?: string
+  sub?: string
 }
 
 export function parseJwt(token: string): JwtPayload | null {
