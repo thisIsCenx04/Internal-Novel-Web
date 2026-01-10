@@ -8,6 +8,8 @@ export type StorySummary = {
   coverUrl: string | null
   isVisible: boolean
   categories: CategorySummary[]
+  createdAt: string | null
+  viewCount: number
 }
 
 export type CategorySummary = {

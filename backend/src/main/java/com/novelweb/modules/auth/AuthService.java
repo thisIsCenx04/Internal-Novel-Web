@@ -100,6 +100,9 @@ public class AuthService {
             return;
         }
         sessionRepository.findById(principal.getSessionId())
-            .ifPresent(session -> sessionService.revoke(session, "LOGOUT"));
+            .ifPresent(session -> {
+                sessionService.revoke(session, "LOGOUT");
+                auditService.log(AuditAction.LOGOUT, principal.getUserId(), session.getId(), "{}", null, null);
+            });
     }
 }

@@ -32,20 +32,21 @@ export function SettingsPage() {
 
   return (
     <section className="stack">
-      <h2>Settings</h2>
+      <h2>Cài đặt trang web</h2>
       <form className="card form" onSubmit={handleSubmit}>
         <label className="field">
-          Rules banner text
+          Quy định (Hiển thị ở banner đầu trang)
           <textarea
             value={form.rulesBannerText}
             rows={3}
+            maxLength={1000}
             onChange={(event) =>
               setForm((prev) => ({ ...prev, rulesBannerText: event.target.value }))
             }
           />
         </label>
         <label className="field">
-          Footer contact text
+          Thông tin liên lạc ở cuối trang
           <textarea
             value={form.footerContactText}
             rows={2}
@@ -55,7 +56,7 @@ export function SettingsPage() {
           />
         </label>
         <label className="field">
-          Single session policy
+          Phương thức hoạt động
           <select
             value={form.singleSessionPolicy}
             onChange={(event) =>
@@ -65,8 +66,8 @@ export function SettingsPage() {
               }))
             }
           >
-            <option value="KICK_OLD">KICK_OLD</option>
-            <option value="DENY_NEW">DENY_NEW</option>
+            <option value="KICK_OLD">Đăng xuất khỏi thiết bị cũ</option>
+            <option value="DENY_NEW">Từ chối nhập ở thiết bị mới</option>
           </select>
         </label>
         <label className="field">
@@ -79,7 +80,7 @@ export function SettingsPage() {
                 setForm((prev) => ({ ...prev, watermarkEnabled: event.target.checked }))
               }
             />
-            <span>Enable watermark</span>
+            <span>Watermark</span>
           </div>
         </label>
         <div className="actions">

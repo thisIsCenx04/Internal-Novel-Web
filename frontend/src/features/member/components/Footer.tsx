@@ -16,20 +16,20 @@ export function Footer() {
         </div>
         <div className="member-footer__col">
           <h4>Ve chung toi</h4>
-          <a href="#about">Gioi thieu</a>
-          <a href="#contact">Lien he</a>
-          <a href="#policy">Dieu khoan</a>
+          <a href="#about">Giới thiệu</a>
+          <a href="#contact">Liên hệ</a>
+          <a href="#policy">Điều khoản</a>
         </div>
         <div className="member-footer__col">
           <h4>Kham pha</h4>
-          <a href="#discover">Tim truyen</a>
-          <a href="#newest">Truyen moi</a>
-          <a href="#top">Truyen hot</a>
+          <a href="#discover">Tìm truyện</a>
+          <a href="#newest">Truyện mới</a>
+          <a href="#top">Truyện hot</a>
         </div>
         <div className="member-footer__col">
           <h4>Ho tro</h4>
-          <a href="#guide">Huong dan su dung</a>
-          <a href="#support">Ho tro</a>
+          <a href="#guide">Hướng dẫn sử dụng</a>
+          <a href="#support">Hỗ trợ</a>
         </div>
       </div>
       <div className="member-footer__bottom">

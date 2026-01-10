@@ -24,17 +24,17 @@ export function MemberHeader({ onLogout }: HeaderProps) {
         </Link>
         <div className="member-actions">
           <Button type="button" variant="secondary" onClick={onLogout}>
-            Logout
+            Đăng xuất
           </Button>
         </div>
       </div>
       {vipExpired ? (
         <div className="vip-banner vip-banner--danger">
-          VIP expired. Please renew to continue reading.
+          Hết hạn đăng ký. Vui lòng liên hệ Admin và gia hạn để tiếp tục sử dụng
         </div>
       ) : vipWarning != null ? (
         <div className="vip-banner">
-          VIP expires in {vipWarning} day{vipWarning === 1 ? '' : 's'}.
+          VIP hết hạn trong {vipWarning} ngày{vipWarning === 1 ? '' : 's'}.
         </div>
       ) : null}
     </header>
