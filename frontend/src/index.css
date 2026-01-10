@@ -262,6 +262,11 @@ h3 {
   cursor: pointer;
 }
 
+.ghost-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -404,11 +409,42 @@ h3 {
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 12px 28px rgba(60, 45, 32, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
 .reader-content__body {
   white-space: pre-wrap;
   line-height: 1.7;
+  user-select: none;
+}
+
+.reader-actions {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+
+.reader-notice {
+  margin: 8px 0 0;
+  color: #8c3d1f;
+  font-weight: 600;
+}
+
+.reader-watermark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  opacity: 0.12;
+  font-size: 18px;
+  font-weight: 700;
+  color: #5f5043;
+  transform: rotate(-12deg);
+  align-content: center;
+  justify-items: center;
 }
 
 .chapter-card {
@@ -509,6 +545,13 @@ h3 {
   display: grid;
   gap: 6px;
   font-weight: 600;
+}
+
+.inline-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
 }
 
 .field input {

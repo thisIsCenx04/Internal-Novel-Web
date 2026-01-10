@@ -57,6 +57,13 @@ export function ChaptersPage() {
     setIsModalOpen(false)
   }
 
+  const getNextChapterNo = () => {
+    const list = chaptersQuery.data ?? []
+    if (!list.length) return 1
+    const maxNo = Math.max(...list.map((chapter) => chapter.chapterNo))
+    return maxNo + 1
+  }
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!storyId) return
@@ -107,7 +114,7 @@ export function ChaptersPage() {
             type="button"
             onClick={() => {
               setEditing(null)
-              setForm(emptyForm)
+              setForm({ ...emptyForm, chapterNo: getNextChapterNo() })
               setIsModalOpen(true)
             }}
           >

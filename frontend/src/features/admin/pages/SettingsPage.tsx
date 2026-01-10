@@ -7,6 +7,7 @@ const defaultState: SettingsPayload = {
   rulesBannerText: '',
   footerContactText: '',
   singleSessionPolicy: 'KICK_OLD',
+  watermarkEnabled: true,
 }
 
 export function SettingsPage() {
@@ -67,6 +68,19 @@ export function SettingsPage() {
             <option value="KICK_OLD">KICK_OLD</option>
             <option value="DENY_NEW">DENY_NEW</option>
           </select>
+        </label>
+        <label className="field">
+          <span>Reader watermark</span>
+          <div className="inline-field">
+            <input
+              type="checkbox"
+              checked={form.watermarkEnabled}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, watermarkEnabled: event.target.checked }))
+              }
+            />
+            <span>Enable watermark</span>
+          </div>
         </label>
         <div className="actions">
           <Button type="submit" disabled={isLoading || mutation.isPending}>

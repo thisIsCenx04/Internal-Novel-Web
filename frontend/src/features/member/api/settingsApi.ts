@@ -4,6 +4,7 @@ export type MemberSettings = {
   rulesBannerText: string
   footerContactText: string
   singleSessionPolicy: 'KICK_OLD' | 'DENY_NEW'
+  watermarkEnabled: boolean
 }
 
 export async function fetchMemberSettings(): Promise<MemberSettings> {

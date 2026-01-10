@@ -35,6 +35,9 @@ public class SiteSetting {
     @Column(name = "single_session_policy", nullable = false, columnDefinition = "setting_single_session_policy")
     private SingleSessionPolicy singleSessionPolicy = SingleSessionPolicy.KICK_OLD;
 
+    @Column(name = "watermark_enabled", nullable = false)
+    private Boolean watermarkEnabled = Boolean.TRUE;
+
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 

@@ -10,4 +10,5 @@ public class SettingsResponse {
     private final String rulesBannerText;
     private final String footerContactText;
     private final SingleSessionPolicy singleSessionPolicy;
+    private final boolean watermarkEnabled;
 }

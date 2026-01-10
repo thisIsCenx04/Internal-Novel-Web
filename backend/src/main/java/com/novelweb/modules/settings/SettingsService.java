@@ -25,6 +25,9 @@ public class SettingsService {
         settings.setRulesBannerText(Optional.ofNullable(request.getRulesBannerText()).orElse(""));
         settings.setFooterContactText(Optional.ofNullable(request.getFooterContactText()).orElse(""));
         settings.setSingleSessionPolicy(request.getSingleSessionPolicy());
+        if (request.getWatermarkEnabled() != null) {
+            settings.setWatermarkEnabled(request.getWatermarkEnabled());
+        }
         return toResponse(settingsRepository.save(settings));
     }
 
@@ -35,6 +38,7 @@ public class SettingsService {
             setting.setRulesBannerText("");
             setting.setFooterContactText("");
             setting.setSingleSessionPolicy(SingleSessionPolicy.KICK_OLD);
+            setting.setWatermarkEnabled(true);
             return settingsRepository.save(setting);
         });
     }
@@ -43,7 +47,8 @@ public class SettingsService {
         return new SettingsResponse(
             setting.getRulesBannerText(),
             setting.getFooterContactText(),
-            setting.getSingleSessionPolicy()
+            setting.getSingleSessionPolicy(),
+            Boolean.TRUE.equals(setting.getWatermarkEnabled())
         );
     }
 }
