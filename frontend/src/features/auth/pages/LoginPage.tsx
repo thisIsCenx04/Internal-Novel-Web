@@ -52,19 +52,19 @@ export function LoginPage() {
     } catch (err) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Sai tài khoản hoặc mật khẩu.'
+        'Tài khoản hoặc mật khẩu không đúng.'
       setError(message)
     }
   }
 
   return (
     <div className="card">
-      <h2>Login</h2>
+      <h2>Đăng nhập</h2>
       <form onSubmit={handleLogin} className="form">
         {expiredMessage ? <p className="toast toast--error">{expiredMessage}</p> : null}
         {error ? <p className="toast toast--error">{error}</p> : null}
         <label className="field">
-          Username
+          Tên đăng nhập
           <input
             value={username}
             onChange={(event) => setUsername(event.target.value)}
@@ -72,7 +72,7 @@ export function LoginPage() {
           />
         </label>
         <label className="field">
-          Password
+          Mật khẩu
           <input
             type="password"
             value={password}
@@ -81,10 +81,7 @@ export function LoginPage() {
           />
         </label>
         <div className="actions">
-          <Button type="submit">Login</Button>
-          <Button type="button" variant="secondary" onClick={handlePing}>
-            Ping Auth
-          </Button>
+          <Button type="submit">Đăng nhập</Button>
         </div>
         {pingResult ? <p className="muted">Ping: {pingResult}</p> : null}
       </form>

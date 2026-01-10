@@ -12,12 +12,12 @@ export function HomePage() {
     <section className="member-home">
       <div className="section-header">
         <div>
-          <h2>Top 15 truyen moi nhat</h2>
-          <p className="muted">Cap nhat lien tuc tu he thong.</p>
+          <h2>Top 15 truyện mới nhất</h2>
+          <p className="muted">Cập nhật liên tục từ hệ thống.</p>
         </div>
       </div>
       {storiesQuery.isLoading ? (
-        <p className="muted">Loading...</p>
+        <p className="muted">Đang tải...</p>
       ) : storiesQuery.data && storiesQuery.data.length ? (
         <div className="story-grid story-grid--wide">
           {storiesQuery.data.slice(0, 15).map((story) => (
@@ -25,7 +25,7 @@ export function HomePage() {
           ))}
         </div>
       ) : (
-        <p className="muted">No stories yet.</p>
+        <p className="muted">Chưa có truyện.</p>
       )}
     </section>
   )

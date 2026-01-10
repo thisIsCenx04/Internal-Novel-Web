@@ -69,22 +69,23 @@ export function StoryFormPage() {
       <h2>{isEdit ? 'Edit story' : 'Create story'}</h2>
       <div className="card form">
         {storyQuery.isLoading ? (
-          <p className="muted">Loading...</p>
+          <p className="muted">Đang tải...</p>
         ) : storyQuery.isError ? (
-          <p className="muted">Story not found.</p>
+          <p className="muted">Không tìm thấy truyện.</p>
         ) : (
           <form className="form" onSubmit={handleSubmit}>
             <label className="field">
-              Title
+              Tên
               <input
                 value={form.title}
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
               />
             </label>
             <label className="field">
-              Description
+              Mô tả
               <textarea
                 rows={3}
+                maxLength={250}
                 value={form.description}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, description: event.target.value }))
@@ -92,14 +93,14 @@ export function StoryFormPage() {
               />
             </label>
             <label className="field">
-              Cover URL
+              URL ảnh bìa
               <input
                 value={form.coverUrl}
                 onChange={(event) => setForm((prev) => ({ ...prev, coverUrl: event.target.value }))}
               />
             </label>
             <label className="field">
-              Categories
+              Thể loại
               <TagSelect
                 options={categoriesQuery.data ?? []}
                 value={form.categoryIds}
@@ -107,15 +108,15 @@ export function StoryFormPage() {
               />
             </label>
             <label className="field">
-              Visible
+              Hiển thị
               <select
                 value={form.isVisible ? 'true' : 'false'}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, isVisible: event.target.value === 'true' }))
                 }
               >
-                <option value="true">Visible</option>
-                <option value="false">Hidden</option>
+                <option value="true">Hiện</option>
+                <option value="false">Ẩn</option>
               </select>
             </label>
             <div className="actions">
@@ -123,7 +124,7 @@ export function StoryFormPage() {
                 {isEdit ? 'Update' : 'Create'}
               </Button>
               <Button type="button" variant="secondary" onClick={() => navigate('/admin/stories')}>
-                Cancel
+                Hủy
               </Button>
             </div>
           </form>

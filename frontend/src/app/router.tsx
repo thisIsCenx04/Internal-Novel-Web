@@ -15,6 +15,7 @@ import { StoryFormPage } from '../features/admin/pages/StoryFormPage'
 import { ChaptersPage } from '../features/admin/pages/ChaptersPage'
 import { CategoriesPage } from '../features/admin/pages/CategoriesPage'
 import { UsersPage } from '../features/admin/pages/UsersPage'
+import { AuditLogsPage } from '../features/admin/pages/AuditLogsPage'
 
 export const router = createBrowserRouter([
   {
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
       { path: 'users', element: <UsersPage /> },
       { path: 'categories', element: <CategoriesPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'audit-logs', element: <AuditLogsPage /> },
     ],
   },
   {

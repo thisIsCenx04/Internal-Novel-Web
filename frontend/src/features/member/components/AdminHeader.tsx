@@ -13,11 +13,11 @@ export function AdminHeader({ onLogout }: HeaderProps) {
           Novel Web Admin
         </Link>
         <nav className="site-nav">
-          <Link to="/admin">Dashboard</Link>
-          <Link to="/admin/stories">Stories</Link>
-          <Link to="/admin/settings">Settings</Link>
+          <Link to="/admin">Thống kê</Link>
+          <Link to="/admin/stories">Quản lí truyện</Link>
+          <Link to="/admin/settings">Cài đặt</Link>
           <Button type="button" variant="secondary" onClick={onLogout}>
-            Logout
+            Đăng xuất
           </Button>
         </nav>
       </div>

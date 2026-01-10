@@ -1,6 +1,7 @@
 package com.novelweb.modules.stories.dto;
 
 import com.novelweb.modules.categories.dto.CategoryResponse;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -16,4 +17,6 @@ public class StorySummaryResponse {
     private final String coverUrl;
     private final Boolean isVisible;
     private final List<CategoryResponse> categories;
+    private final OffsetDateTime createdAt;
+    private final long viewCount;
 }

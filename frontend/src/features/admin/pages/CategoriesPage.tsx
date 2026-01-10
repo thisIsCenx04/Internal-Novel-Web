@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Button } from '../../../shared/components/Button'
 import { Table } from '../../../shared/components/Table'
@@ -11,9 +11,11 @@ import {
 import { Modal } from '../../../shared/components/Modal'
 
 export function CategoriesPage() {
+  const PAGE_SIZE = 10
   const [name, setName] = useState('')
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
 
   const categoriesQuery = useQuery({
     queryKey: ['admin-categories'],
@@ -26,7 +28,19 @@ export function CategoriesPage() {
     return list.filter((category) => !query || category.name.toLowerCase().includes(query))
   }, [categoriesQuery.data, search])
 
-  const hasCategories = Boolean(filteredCategories.length)
+  const totalPages = Math.max(Math.ceil(filteredCategories.length / PAGE_SIZE), 1)
+  const safePage = Math.min(page, totalPages - 1)
+  const pagedCategories = filteredCategories.slice(
+    safePage * PAGE_SIZE,
+    (safePage + 1) * PAGE_SIZE
+  )
+  const hasCategories = Boolean(pagedCategories.length)
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage)
+    }
+  }, [page, safePage])
 
   const createMutation = useMutation({ mutationFn: (value: string) => createCategory(value) })
   const deleteMutation = useMutation({ mutationFn: deleteCategory })
@@ -54,33 +68,36 @@ export function CategoriesPage() {
   return (
     <section className="stack">
       <div className="section-header">
-        <h2>Categories</h2>
+        <h2>Quản lí thể loại</h2>
         <Button type="button" onClick={() => setIsCreateOpen(true)}>
-          Create category
+          Tạo thể loại mới
         </Button>
       </div>
 
       <div className="card">
-        <h3>All categories</h3>
+        <h3>Tất cả thể loại</h3>
         <div className="filter-bar">
           <input
             placeholder="Search category"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(0)
+            }}
           />
         </div>
         {categoriesQuery.isLoading ? (
-          <p className="muted">Loading...</p>
+          <p className="muted">Đang tải...</p>
         ) : hasCategories ? (
           <Table
             header={
               <tr>
-                <th>Name</th>
-                <th>Slug</th>
-                <th>Actions</th>
+                <th>Tên</th>
+                <th>Thẻ slug</th>
+                <th>Hành động</th>
               </tr>
             }
-            body={filteredCategories.map((category) => (
+            body={pagedCategories.map((category) => (
               <tr key={category.id}>
                 <td>
                   <strong>{category.name}</strong>
@@ -97,22 +114,58 @@ export function CategoriesPage() {
             ))}
           />
         ) : (
-          <p className="muted">No categories yet.</p>
+          <p className="muted">Chưa có thể loại.</p>
         )}
+        {totalPages > 1 ? (
+          <div className="pagination">
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={safePage <= 0}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+            >
+              Trước
+            </button>
+            <label className="page-input">
+              Trang
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={safePage + 1}
+                onChange={(event) => {
+                  const next = Number(event.target.value)
+                  if (Number.isNaN(next)) return
+                  const clamped = Math.min(Math.max(next, 1), totalPages)
+                  setPage(clamped - 1)
+                }}
+              />
+              / {totalPages}
+            </label>
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={safePage + 1 >= totalPages}
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+            >
+              Sau
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <Modal open={isCreateOpen} title="Create category" onClose={reset}>
         <form className="form" onSubmit={handleSubmit}>
           <label className="field">
-            Name
+            Tên
             <input value={name} onChange={(event) => setName(event.target.value)} />
           </label>
           <div className="actions">
             <Button type="submit" disabled={createMutation.isPending}>
-              Create
+              Tạo mới
             </Button>
             <Button type="button" variant="secondary" onClick={reset}>
-              Cancel
+              Hủy
             </Button>
           </div>
         </form>

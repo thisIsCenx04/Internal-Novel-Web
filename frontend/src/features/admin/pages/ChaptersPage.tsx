@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../../../shared/components/Button'
@@ -20,6 +20,7 @@ const emptyForm: ChapterUpsert = {
   content: '',
   isVisible: true,
 }
+const PAGE_SIZE = 10
 
 export function ChaptersPage() {
   const { storyId } = useParams()
@@ -29,6 +30,7 @@ export function ChaptersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
 
   const chaptersQuery = useQuery({
     queryKey: ['admin-chapters', storyId],
@@ -47,7 +49,19 @@ export function ChaptersPage() {
     })
   }, [chaptersQuery.data, search])
 
-  const hasChapters = Boolean(filteredChapters.length)
+  const totalPages = Math.max(Math.ceil(filteredChapters.length / PAGE_SIZE), 1)
+  const safePage = Math.min(page, totalPages - 1)
+  const pagedChapters = filteredChapters.slice(
+    safePage * PAGE_SIZE,
+    (safePage + 1) * PAGE_SIZE,
+  )
+  const hasChapters = Boolean(pagedChapters.length)
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage)
+    }
+  }, [page, safePage])
 
   const createMutation = useMutation({
     mutationFn: (payload: ChapterUpsert) => createChapter(storyId || '', payload),
@@ -110,14 +124,14 @@ export function ChaptersPage() {
   return (
     <section className="stack">
       <div className="story-list__header">
-        <h2>Chapters</h2>
+        <h2>Quản lí chương</h2>
         <div className="actions">
           <Button
             type="button"
             variant="secondary"
             onClick={() => navigate('/admin/stories')}
           >
-            Back to stories
+            Trở về danh sách truyện
           </Button>
           <Button
             type="button"
@@ -127,36 +141,39 @@ export function ChaptersPage() {
               setIsModalOpen(true)
             }}
           >
-            Create chapter
+            Tạo chương mới
           </Button>
         </div>
       </div>
 
       <div className="card">
         <div className="story-list__header">
-          <h3>All chapters</h3>
+          <h3>Tất cả chương</h3>
         </div>
         <div className="filter-bar">
           <input
             placeholder="Search chapter"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(0)
+            }}
           />
         </div>
         {chaptersQuery.isLoading ? (
-          <p className="muted">Loading...</p>
+          <p className="muted">Đang tải...</p>
         ) : hasChapters ? (
           <Table
             header={
               <tr>
-                <th>No</th>
-                <th>Title</th>
-                <th>Visible</th>
-                <th>Published</th>
-                <th>Actions</th>
+                <th>Stt</th>
+                <th>Tên</th>
+                <th>Hiển thị</th>
+                <th>Ngày đăng</th>
+                <th>Hành động</th>
               </tr>
             }
-            body={filteredChapters.map((chapter) => (
+            body={pagedChapters.map((chapter) => (
               <tr key={chapter.id}>
                 <td>
                   <strong>#{chapter.chapterNo}</strong>
@@ -169,10 +186,10 @@ export function ChaptersPage() {
                 <td>
                   <div className="actions">
                     <Button type="button" variant="secondary" onClick={() => handleEdit(chapter)}>
-                      Edit
+                      Sửa
                     </Button>
                     <Button type="button" variant="secondary" onClick={() => handleDelete(chapter)}>
-                      Delete
+                      Xóa
                     </Button>
                   </div>
                 </td>
@@ -180,8 +197,44 @@ export function ChaptersPage() {
             ))}
           />
         ) : (
-          <p className="muted">No chapters yet.</p>
+          <p className="muted">Chưa có chương.</p>
         )}
+        {totalPages > 1 ? (
+          <div className="pagination">
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={safePage <= 0}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+            >
+              Trước
+            </button>
+            <label className="page-input">
+              Trang
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={safePage + 1}
+                onChange={(event) => {
+                  const next = Number(event.target.value)
+                  if (Number.isNaN(next)) return
+                  const clamped = Math.min(Math.max(next, 1), totalPages)
+                  setPage(clamped - 1)
+                }}
+              />
+              / {totalPages}
+            </label>
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={safePage + 1 >= totalPages}
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+            >
+              Sau
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <Modal
@@ -190,11 +243,11 @@ export function ChaptersPage() {
         onClose={resetForm}
       >
         {isDetailLoading ? (
-          <p className="muted">Loading...</p>
+          <p className="muted">Đang tải...</p>
         ) : (
           <form className="form" onSubmit={handleSubmit}>
             <label className="field">
-              Chapter no
+              Chương số
               <input
                 type="number"
                 min={1}
@@ -205,14 +258,14 @@ export function ChaptersPage() {
               />
             </label>
             <label className="field">
-              Title
+              Tên
               <input
                 value={form.title}
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
               />
             </label>
             <label className="field">
-              Content
+              Nội dung
               <textarea
                 rows={6}
                 value={form.content}
@@ -220,15 +273,15 @@ export function ChaptersPage() {
               />
             </label>
             <label className="field">
-              Visible
+              Hiển thị
               <select
                 value={form.isVisible ? 'true' : 'false'}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, isVisible: event.target.value === 'true' }))
                 }
               >
-                <option value="true">Visible</option>
-                <option value="false">Hidden</option>
+                <option value="true">Hiện</option>
+                <option value="false">Ẩn</option>
               </select>
             </label>
             <div className="actions">

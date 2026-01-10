@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Button } from '../../../shared/components/Button'
 import { Modal } from '../../../shared/components/Modal'
@@ -19,6 +19,7 @@ import {
 const emptyCreate = { username: '', password: '' }
 const emptyEdit: UserUpdatePayload = {}
 const emptyVip: VipUpdatePayload = {}
+const PAGE_SIZE = 10
 
 export function UsersPage() {
   const usersQuery = useQuery({
@@ -36,6 +37,7 @@ export function UsersPage() {
   const [search, setSearch] = useState('')
   const [lastLoginFilter, setLastLoginFilter] = useState('any')
   const [vipFilterDays, setVipFilterDays] = useState('')
+  const [page, setPage] = useState(0)
 
   const filteredUsers = useMemo(() => {
     const list = usersQuery.data ?? []
@@ -75,7 +77,16 @@ export function UsersPage() {
     })
   }, [usersQuery.data, search, lastLoginFilter, vipFilterDays])
 
-  const hasUsers = Boolean(filteredUsers.length)
+  const totalPages = Math.max(Math.ceil(filteredUsers.length / PAGE_SIZE), 1)
+  const safePage = Math.min(page, totalPages - 1)
+  const pagedUsers = filteredUsers.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)
+  const hasUsers = Boolean(pagedUsers.length)
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage)
+    }
+  }, [page, safePage])
 
   const createMutation = useMutation({ mutationFn: createUser })
   const updateMutation = useMutation({
@@ -184,53 +195,62 @@ export function UsersPage() {
   return (
     <section className="stack">
       <div className="section-header">
-        <h2>Users</h2>
+        <h2>Quản lí người dùng</h2>
         <Button type="button" onClick={() => setIsCreateOpen(true)}>
-          Create user
+          Tạo người dùng mới
         </Button>
       </div>
 
       <div className="card">
-        <h3>All users</h3>
+        <h3>Tất cả người dùng</h3>
         <div className="filter-bar">
           <input
             placeholder="Search username"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(0)
+            }}
           />
           <select
             value={lastLoginFilter}
-            onChange={(event) => setLastLoginFilter(event.target.value)}
+            onChange={(event) => {
+              setLastLoginFilter(event.target.value)
+              setPage(0)
+            }}
           >
-            <option value="any">Last login: Any</option>
-            <option value="24h">Last login: 24h</option>
-            <option value="7d">Last login: 7 days</option>
-            <option value="30d">Last login: 30 days</option>
-            <option value="never">Last login: Never</option>
+            <option value="any">Đăng nhập lần cuối: Tất cả</option>
+            <option value="24h">Đăng nhập lần cuối: 24h</option>
+            <option value="7d">Đăng nhập lần cuối: 7 ngày</option>
+            <option value="30d">Đăng nhập lần cuối: 30 ngày</option>
+            <option value="never">Đăng nhập lần cuối: Chưa đăng nhập</option>
           </select>
           <input
             type="number"
             min={0}
             placeholder="VIP expires in <= days"
             value={vipFilterDays}
-            onChange={(event) => setVipFilterDays(event.target.value)}
+            onChange={(event) => {
+              setVipFilterDays(event.target.value)
+              setPage(0)
+            }}
           />
         </div>
         {usersQuery.isLoading ? (
-          <p className="muted">Loading...</p>
+          <p className="muted">Đang tải...</p>
         ) : hasUsers ? (
           <Table
             header={
               <tr>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>VIP expires</th>
-                <th>Last login</th>
-                <th>Actions</th>
+                <th>Tên đăng nhập</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Ngày hết hạn VIP</th>
+                <th>Đăng nhập lần cuối</th>
+                <th>Hành động</th>
               </tr>
             }
-            body={filteredUsers.map((user) => (
+            body={pagedUsers.map((user) => (
               <tr key={user.id}>
                 <td>
                   <strong>{user.username}</strong>
@@ -253,7 +273,7 @@ export function UsersPage() {
                         setIsEditOpen(true)
                       }}
                     >
-                      Edit
+                      Sửa
                     </Button>
                     <Button
                       type="button"
@@ -273,7 +293,7 @@ export function UsersPage() {
                       {user.status === 'BANNED' ? 'Unban' : 'Ban'}
                     </Button>
                     <Button type="button" variant="secondary" onClick={() => handleDelete(user)}>
-                      Delete
+                      Xóa
                     </Button>
                   </div>
                 </td>
@@ -281,21 +301,57 @@ export function UsersPage() {
             ))}
           />
         ) : (
-          <p className="muted">No users yet.</p>
+          <p className="muted">Chưa có người dùng.</p>
         )}
+        {totalPages > 1 ? (
+          <div className="pagination">
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={safePage <= 0}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+            >
+              Trước
+            </button>
+            <label className="page-input">
+              Trang
+              <input
+                type="number"
+                min={1}
+                max={totalPages}
+                value={safePage + 1}
+                onChange={(event) => {
+                  const next = Number(event.target.value)
+                  if (Number.isNaN(next)) return
+                  const clamped = Math.min(Math.max(next, 1), totalPages)
+                  setPage(clamped - 1)
+                }}
+              />
+              / {totalPages}
+            </label>
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={safePage + 1 >= totalPages}
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
+            >
+              Sau
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <Modal open={isCreateOpen} title="Create user" onClose={resetCreate}>
         <form className="form" onSubmit={handleCreate}>
           <label className="field">
-            Username
+            Tên đăng nhập
             <input
               value={createForm.username}
               onChange={(event) => setCreateForm((prev) => ({ ...prev, username: event.target.value }))}
             />
           </label>
           <label className="field">
-            Password
+            Mật khẩu
             <input
               type="password"
               value={createForm.password}
@@ -304,10 +360,10 @@ export function UsersPage() {
           </label>
           <div className="actions">
             <Button type="submit" disabled={createMutation.isPending}>
-              Create
+              Tạo mới
             </Button>
             <Button type="button" variant="secondary" onClick={resetCreate}>
-              Cancel
+              Hủy
             </Button>
           </div>
         </form>
@@ -316,14 +372,14 @@ export function UsersPage() {
       <Modal open={isEditOpen} title="Edit user" onClose={resetEdit}>
         <form className="form" onSubmit={handleEdit}>
           <label className="field">
-            Username
+            Tên đăng nhập
             <input
               value={editForm.username ?? ''}
               onChange={(event) => setEditForm((prev) => ({ ...prev, username: event.target.value }))}
             />
           </label>
           <label className="field">
-            Password (optional)
+            Mật khẩu
             <input
               type="password"
               value={editForm.password ?? ''}
@@ -331,7 +387,7 @@ export function UsersPage() {
             />
           </label>
           <label className="field">
-            Status
+            Trạng thái
             <select
               value={editForm.status ?? 'ACTIVE'}
               onChange={(event) =>
@@ -341,16 +397,16 @@ export function UsersPage() {
                 }))
               }
             >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="BANNED">BANNED</option>
+              <option value="ACTIVE">Hoạt động</option>
+              <option value="BANNED">Đã cấm</option>
             </select>
           </label>
           <div className="actions">
             <Button type="submit" disabled={updateMutation.isPending}>
-              Save
+              Lưu
             </Button>
             <Button type="button" variant="secondary" onClick={resetEdit}>
-              Cancel
+              Hủy
             </Button>
           </div>
         </form>
@@ -359,7 +415,7 @@ export function UsersPage() {
       <Modal open={isVipOpen} title="Update VIP" onClose={resetVip}>
         <form className="form" onSubmit={handleVip}>
           <label className="field">
-            Expires at
+            Hết hạn vào lúc
             <input
               type="datetime-local"
               value={vipForm.expiresAt ?? ''}
@@ -367,7 +423,7 @@ export function UsersPage() {
             />
           </label>
           <label className="field">
-            Add days
+            Thêm ngày
             <input
               type="number"
               min={1}
@@ -381,7 +437,7 @@ export function UsersPage() {
             />
           </label>
           <label className="field">
-            Note
+            Ghi chú
             <input
               value={vipForm.note ?? ''}
               onChange={(event) => setVipForm((prev) => ({ ...prev, note: event.target.value }))}
@@ -389,17 +445,17 @@ export function UsersPage() {
           </label>
           <div className="actions">
             <Button type="submit" disabled={vipMutation.isPending}>
-              Save
+              Lưu
             </Button>
             <Button
               type="button"
               variant="secondary"
               onClick={() => setVipForm({ expiresAt: '', addDays: undefined, note: '' })}
             >
-              Clear VIP
+              Xóa VIP
             </Button>
             <Button type="button" variant="secondary" onClick={resetVip}>
-              Cancel
+              Hủy
             </Button>
           </div>
         </form>

@@ -8,13 +8,16 @@ import com.novelweb.modules.chapters.ChapterRepository;
 import com.novelweb.modules.chapters.dto.ChapterSummaryResponse;
 import com.novelweb.modules.categories.CategoryRepository;
 import com.novelweb.modules.categories.dto.CategoryResponse;
+import com.novelweb.modules.reader.ChapterViewRepository;
 import com.novelweb.modules.stories.dto.StoryCreateRequest;
 import com.novelweb.modules.stories.dto.StoryDetailResponse;
 import com.novelweb.modules.stories.dto.StoryDetailWithChaptersResponse;
 import com.novelweb.modules.stories.dto.StorySummaryResponse;
 import com.novelweb.modules.stories.dto.StoryUpdateRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -26,11 +29,13 @@ public class StoryService {
     private final StoryRepository storyRepository;
     private final ChapterRepository chapterRepository;
     private final CategoryRepository categoryRepository;
+    private final ChapterViewRepository chapterViewRepository;
 
     public List<StorySummaryResponse> getNewest(int limit) {
-        return storyRepository.findVisible(PageRequest.of(0, limit))
-            .stream()
-            .map(this::toSummary)
+        List<Story> stories = storyRepository.findVisible(PageRequest.of(0, limit));
+        Map<UUID, Long> viewCounts = loadViewCounts(stories);
+        return stories.stream()
+            .map(story -> toSummary(story, viewCounts))
             .toList();
     }
 
@@ -66,9 +71,10 @@ public class StoryService {
     }
 
     public List<StorySummaryResponse> adminList() {
-        return storyRepository.findAll()
-            .stream()
-            .map(this::toSummary)
+        List<Story> stories = storyRepository.findAll();
+        Map<UUID, Long> viewCounts = loadViewCounts(stories);
+        return stories.stream()
+            .map(story -> toSummary(story, viewCounts))
             .toList();
     }
 
@@ -136,7 +142,7 @@ public class StoryService {
         }
     }
 
-    private StorySummaryResponse toSummary(Story story) {
+    private StorySummaryResponse toSummary(Story story, Map<UUID, Long> viewCounts) {
         return new StorySummaryResponse(
             story.getId(),
             story.getTitle(),
@@ -144,7 +150,9 @@ public class StoryService {
             story.getDescription(),
             story.getCoverUrl(),
             story.getIsVisible(),
-            toCategories(story)
+            toCategories(story),
+            story.getCreatedAt(),
+            viewCounts.getOrDefault(story.getId(), 0L)
         );
     }
 
@@ -169,6 +177,21 @@ public class StoryService {
                 category.getSlug()
             ))
             .toList();
+    }
+
+    private Map<UUID, Long> loadViewCounts(List<Story> stories) {
+        List<UUID> storyIds = stories.stream()
+            .map(Story::getId)
+            .toList();
+        if (storyIds.isEmpty()) {
+            return Map.of();
+        }
+        return chapterViewRepository.countViewsByStoryIds(storyIds)
+            .stream()
+            .collect(Collectors.toMap(
+                ChapterViewRepository.StoryViewCount::getStoryId,
+                ChapterViewRepository.StoryViewCount::getViews
+            ));
     }
 
     private String generateUniqueSlug(String title) {

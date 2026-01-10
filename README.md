@@ -14,3 +14,10 @@ Config:
 - Frontend: copy `frontend/.env.example` to `frontend/.env`.
 - Backend: set env vars from `.env.example` (or Railway variables) before running.
 - Railway: set `JDBC_DATABASE_URL` to the Postgres JDBC URL (or map PG* vars), then run the schema from `Db.txt`.
+
+Docker:
+- Backend image: `docker build -t novelweb-backend ./backend`
+- Frontend image: `docker build --build-arg VITE_API_URL=http://localhost:8080 -t novelweb-frontend ./frontend`
+
+Health check:
+- `GET /api/health` returns `ok`.

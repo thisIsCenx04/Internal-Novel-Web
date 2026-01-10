@@ -5,6 +5,34 @@ type StoryCardProps = {
   story: StorySummary
 }
 
+const formatViews = (value: number) => {
+  if (value < 1000) return value.toString()
+  if (value < 1_000_000) {
+    const formatted = (value / 1000).toFixed(1)
+    return `${formatted.replace('.0', '')}k`
+  }
+  const formatted = (value / 1_000_000).toFixed(1)
+  return `${formatted.replace('.0', '')}m`
+}
+
+const formatRelativeDate = (value: string | null) => {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+  const diffMs = Date.now() - date.getTime()
+  const diffMinutes = Math.floor(diffMs / 60000)
+  if (diffMinutes < 1) return 'Vua xong'
+  if (diffMinutes < 60) return `${diffMinutes} phut truoc`
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return `${diffHours} gio truoc`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) return `${diffDays} ngay truoc`
+  const diffWeeks = Math.floor(diffDays / 7)
+  if (diffWeeks < 5) return `${diffWeeks} tuan truoc`
+  const diffMonths = Math.floor(diffDays / 30)
+  return `${diffMonths} thang truoc`
+}
+
 export function StoryCard({ story }: StoryCardProps) {
   return (
     <article className="story-card">
@@ -34,8 +62,8 @@ export function StoryCard({ story }: StoryCardProps) {
           <p className="muted">{story.description || 'Mo ta dang cap nhat.'}</p>
         </Link>
         <Link to={`/home/read/${story.slug}`} className="story-card__meta">
-          <span>3 tuan truoc</span>
-          <span>1.2k</span>
+          <span>{formatRelativeDate(story.createdAt)}</span>
+          <span>{formatViews(story.viewCount)}</span>
         </Link>
       </div>
     </article>

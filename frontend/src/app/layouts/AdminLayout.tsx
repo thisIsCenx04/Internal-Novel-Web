@@ -14,13 +14,14 @@ export function AdminLayout() {
   return (
     <div className="layout layout-admin admin-shell">
       <aside className="admin-sidebar">
-        <div className="admin-sidebar__brand">Admin</div>
+        <div className="admin-sidebar__brand">Quản lý trang web</div>
         <nav className="admin-nav">
-          <Link to="/admin">Dashboard</Link>
-          <Link to="/admin/users">Users</Link>
-          <Link to="/admin/stories">Stories</Link>
-          <Link to="/admin/categories">Categories</Link>
-          <Link to="/admin/settings">Settings</Link>
+          <Link to="/admin">Thống kê</Link>
+          <Link to="/admin/users">Quản lý người dùng</Link>
+          <Link to="/admin/stories">Quản lý</Link>
+          <Link to="/admin/categories">Quản lý thể loại</Link>
+          <Link to="/admin/audit-logs">Logs hệ thống</Link>
+          <Link to="/admin/settings">Cài đặ trang web</Link>
         </nav>
         <div className="admin-sidebar__footer">
           <Button type="button" variant="secondary" onClick={handleLogout}>

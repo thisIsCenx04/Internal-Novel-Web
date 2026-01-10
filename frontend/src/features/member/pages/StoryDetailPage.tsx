@@ -15,6 +15,24 @@ import {
 } from '../api/storyApi'
 import type { AxiosError } from 'axios'
 
+const normalizeChapterTitle = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
+const formatChapterTitle = (chapterNo: number, title?: string | null) => {
+  const safeTitle = title?.trim() || ''
+  if (!safeTitle) return `Chương ${chapterNo}`
+  const normalized = normalizeChapterTitle(safeTitle)
+  const prefix = `chương ${chapterNo}`
+  if (normalized.startsWith(prefix)) {
+    return safeTitle
+  }
+  return `Chương ${chapterNo}: ${safeTitle}`
+}
+
 export function StoryDetailPage() {
   const { slug } = useParams()
   const storyQuery = useQuery({
@@ -30,6 +48,7 @@ export function StoryDetailPage() {
   const [readingSession, setReadingSession] = useState<ReadingSession | null>(null)
   const [nextCooldown, setNextCooldown] = useState(0)
   const [notice, setNotice] = useState<string | null>(null)
+  const [chapterSearch, setChapterSearch] = useState('')
 
   const watermarkText = useMemo(() => {
     const token = tokenStore.getAccessToken()
@@ -50,9 +69,9 @@ export function StoryDetailPage() {
       const axiosError = error as AxiosError<{ message?: string }>
       const message = axiosError.response?.data?.message
       if (message === 'VIP expired') {
-        setNotice('VIP het han. Vui long gia han de doc.')
+        setNotice('VIP hết hạn. Vui lòng gia hạn để đọc.')
       } else {
-        setNotice('Khong the mo chuong. Vui long thu lai.')
+        setNotice('Không thể mở chương. Vui lòng thử lại.')
       }
     }
   }
@@ -90,7 +109,7 @@ export function StoryDetailPage() {
           chapterId: activeChapter?.id,
         }).catch(() => undefined)
       }
-      setNotice('Khong the sao chep noi dung.')
+      setNotice('Không thể sao chép nội dung.')
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -128,6 +147,17 @@ export function StoryDetailPage() {
 
   const story = storyQuery.data
   const chapters = story.chapters
+  const filteredChapters = useMemo(() => {
+    const query = normalizeChapterTitle(chapterSearch)
+    if (!query) return chapters
+    return chapters.filter((chapter) => {
+      const title = formatChapterTitle(chapter.chapterNo, chapter.title)
+      return (
+        normalizeChapterTitle(title).includes(query) ||
+        String(chapter.chapterNo).includes(query)
+      )
+    })
+  }, [chapters, chapterSearch])
   const currentIndex = chapters.findIndex((chapter) => chapter.id === activeChapter?.id)
   const prevChapter = currentIndex > 0 ? chapters[currentIndex - 1] : null
   const nextChapter = currentIndex >= 0 && currentIndex < chapters.length - 1
@@ -137,7 +167,7 @@ export function StoryDetailPage() {
   const handleNext = async () => {
     if (!readingSession?.sessionReadingId) return
     if (!nextChapter) {
-      setNotice('Da la chuong cuoi.')
+      setNotice('Đã là chương cuối.')
       return
     }
     try {
@@ -153,11 +183,11 @@ export function StoryDetailPage() {
       const remaining = axiosError.response?.data?.data?.remainingSeconds
       if (remaining) {
         setNextCooldown(remaining)
-        setNotice(`Ban doc qua nhanh. Hay doi ${remaining}s.`)
+        setNotice(`Bạn đọc quá nhanh. Vui lòng chờ ${remaining}s.`)
       } else if (message === 'VIP expired') {
-        setNotice('VIP het han. Vui long gia han de doc.')
+        setNotice('VIP hết hạn. Vui lòng gia hạn để đọc.')
       } else {
-        setNotice('Khong the sang chuong. Vui long thu lai.')
+        setNotice('Không thể mở chương. Vui lòng thử lại.')
       }
     }
   }
@@ -170,7 +200,7 @@ export function StoryDetailPage() {
         </div>
         <div>
           <h2>{story.title}</h2>
-          <p className="muted">{story.description || 'Mo ta dang cap nhat.'}</p>
+          <p className="muted">{story.description || 'Đang cập nhật.'}</p>
           {story.categories.length ? (
             <div className="reader-tags">
               {story.categories.map((category) => (
@@ -187,37 +217,42 @@ export function StoryDetailPage() {
         <aside className="chapter-card">
           <div className="chapter-card__header">
             <h3>Danh sach chuong</h3>
-            <input type="search" placeholder="Ten chuong..." />
+            <input
+              type="search"
+              placeholder="Tên chương..."
+              value={chapterSearch}
+              onChange={(event) => setChapterSearch(event.target.value)}
+            />
           </div>
           <div className="chapter-list">
-            {story.chapters.length ? (
-              story.chapters.map((chapter) => (
+            {filteredChapters.length ? (
+              filteredChapters.map((chapter) => (
                 <div key={chapter.id} className="chapter-item">
-                  <span>
-                    Chuong {chapter.chapterNo}: {chapter.title || 'Chuong'}
-                  </span>
+                  <span>{formatChapterTitle(chapter.chapterNo, chapter.title)}</span>
                   <button
                     type="button"
                     className="ghost-button"
                     onClick={() => openChapter(chapter)}
                   >
-                    Doc
+                    Đọc
                   </button>
                 </div>
               ))
             ) : (
-              <p className="muted">Chua co chuong.</p>
+              <p className="muted">Không tìm thấy chương.</p>
             )}
           </div>
         </aside>
         <article className="reader-content">
           {chapterQuery.isLoading ? (
-            <p className="muted">Dang tai chuong...</p>
+            <p className="muted">Đang tải chương...</p>
           ) : chapterQuery.data ? (
             <>
               <h3>
-                Chuong {chapterQuery.data.chapterNo}:{' '}
-                {chapterQuery.data.title || 'Chuong'}
+                {formatChapterTitle(
+                  chapterQuery.data.chapterNo,
+                  chapterQuery.data.title,
+                )}
               </h3>
               {notice ? <p className="reader-notice">{notice}</p> : null}
               <div className="reader-actions">
@@ -241,7 +276,7 @@ export function StoryDetailPage() {
               <div className="reader-content__body">{chapterQuery.data.content}</div>
             </>
           ) : (
-            <p className="muted">Chon chuong de doc.</p>
+            <p className="muted">Chọn chương để đọc.</p>
           )}
           {showWatermark ? (
             <div className="reader-watermark">
